@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 
 public interface Rentable {
     void rent(Driver driver, LocalDateTime startRentTime) throws VehicleAlreadyRentedException;
+
     void returnBack(LocalDateTime rentalEnd) throws VehicleNotRentedException, InvalidRentingPeriodException;
+
     double calculateRentalPrice(LocalDateTime startOfRent, LocalDateTime endOfRent) throws InvalidRentingPeriodException;
 }

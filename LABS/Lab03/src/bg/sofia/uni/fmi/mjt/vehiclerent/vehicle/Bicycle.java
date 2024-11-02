@@ -9,6 +9,8 @@ public non-sealed class Bicycle extends Vehicle {
     private final double pricePerHour;
     private final double pricePerDay;
 
+    private static final int MAX_DAYS_IN_WEEK = 7;
+
     public Bicycle(String id, String model, double pricePerDay, double pricePerHour) {
         super(id, model);
         this.pricePerDay = pricePerDay;
@@ -27,7 +29,7 @@ public non-sealed class Bicycle extends Vehicle {
         long days = duration.toDays();
         long hours = duration.minusDays(days).toHours();
 
-        if (days >= 7) {
+        if (days >= MAX_DAYS_IN_WEEK) {
             throw new InvalidRentingPeriodException("Bicycles cannot be rented for more than 6 days.");
         }
 

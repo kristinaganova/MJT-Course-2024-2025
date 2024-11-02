@@ -14,6 +14,7 @@ public class Caravan extends MultiSeatVehicle {
 
     private static final double SEAT_COST = 5.0;
     private static final double BED_COST = 10.0;
+    private static final int MAX_DAYS_IN_WEEK = 7;
 
     public Caravan(String id, String model, FuelType fuelType, int numberOfSeats, int numberOfBeds, double pricePerWeek, double pricePerDay, double pricePerHour) {
         super(id, model, fuelType, numberOfSeats);
@@ -38,13 +39,13 @@ public class Caravan extends MultiSeatVehicle {
             throw new InvalidRentingPeriodException("Caravan must be rented for at least one day.");
         }
 
-        long weeks = days / 7;
-        long remainingDays = days % 7;
+        long weeks = days / MAX_DAYS_IN_WEEK;
+        long remainingDays = days % MAX_DAYS_IN_WEEK;
 
         LocalDateTime endOfLastFullDay = startOfRent.plusDays(days);
         long hours = ChronoUnit.HOURS.between(endOfLastFullDay, endOfRent);
 
-        double baseCost = weeks * pricePerWeek + remainingDays * pricePerDay + hours*pricePerHour;
+        double baseCost = weeks * pricePerWeek + remainingDays * pricePerDay + hours * pricePerHour;
         double seatCost = getNumberOfSeats() * SEAT_COST;
         double bedCost = numberOfBeds * BED_COST;
         double fuelSurcharge = getFuelType().getDailyTax() * days;

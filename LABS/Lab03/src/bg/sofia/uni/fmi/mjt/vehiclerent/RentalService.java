@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 
 public class RentalService {
 
+    private static final int MAX_HOURS_IN_DAY = 24;
+
     public void rentVehicle(Driver driver, Vehicle vehicle, LocalDateTime startOfRent) throws VehicleAlreadyRentedException {
         validateRentalParameters(driver, vehicle, startOfRent);
         vehicle.rent(driver, startOfRent);
@@ -21,7 +23,7 @@ public class RentalService {
     public double returnVehicle(Vehicle vehicle, LocalDateTime endOfRent) throws InvalidRentingPeriodException, VehicleNotRentedException {
         validateReturnParameters(vehicle, endOfRent);
 
-        if(!vehicle.isRented()){
+        if (!vehicle.isRented()) {
             throw new VehicleNotRentedException("Vehicle is not rented");
         }
 
@@ -32,7 +34,7 @@ public class RentalService {
         if (driver != null && !(vehicle instanceof Bicycle)) {
             double dailySurcharge = driver.ageGroup().getDailyFee();
             long hours = Duration.between(startOfRent, endOfRent).toHours();
-            long days = (hours + 23) / 24;
+            long days = (hours + MAX_HOURS_IN_DAY - 1) / MAX_HOURS_IN_DAY;
             rentalCost += dailySurcharge * days;
         }
         vehicle.returnBack(endOfRent);

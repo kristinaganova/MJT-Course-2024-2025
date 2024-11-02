@@ -6,10 +6,8 @@ import bg.sofia.uni.fmi.mjt.vehiclerent.exception.VehicleAlreadyRentedException;
 import bg.sofia.uni.fmi.mjt.vehiclerent.exception.VehicleNotRentedException;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
-public abstract sealed class Vehicle implements Rentable permits Bicycle, MultiSeatVehicle{
-
+public abstract sealed class Vehicle implements Rentable permits Bicycle, MultiSeatVehicle {
     private final String id;
     private final String model;
     private boolean isRented;

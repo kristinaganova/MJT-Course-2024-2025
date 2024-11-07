@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class DefaultUserProfile implements UserProfile {
+public class DefaultUserProfile implements UserProfile, Comparable<DefaultUserProfile> {
     private final String username;
     private final Set<Interest> interests = new HashSet<>();
     private final Set<UserProfile> friends = new HashSet<>();
@@ -114,5 +114,10 @@ public class DefaultUserProfile implements UserProfile {
     @Override
     public int hashCode() {
         return username.hashCode();
+    }
+
+    @Override
+    public int compareTo(DefaultUserProfile other) {
+        return this.username.compareTo(other.username);
     }
 }

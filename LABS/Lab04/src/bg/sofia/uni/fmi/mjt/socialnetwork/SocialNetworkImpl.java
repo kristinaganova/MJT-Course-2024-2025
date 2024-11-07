@@ -3,37 +3,41 @@ package bg.sofia.uni.fmi.mjt.socialnetwork;
 import bg.sofia.uni.fmi.mjt.socialnetwork.exception.UserRegistrationException;
 import bg.sofia.uni.fmi.mjt.socialnetwork.post.Post;
 import bg.sofia.uni.fmi.mjt.socialnetwork.post.SocialFeedPost;
-import bg.sofia.uni.fmi.mjt.socialnetwork.profile.Interest;
 import bg.sofia.uni.fmi.mjt.socialnetwork.profile.UserProfile;
 import bg.sofia.uni.fmi.mjt.socialnetwork.profile.UserProfileFriendCountComparator;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class SocialNetworkImpl implements SocialNetwork {
-    private final Set<UserProfile> users = new HashSet<>();
-    private final Set<Post> posts = new HashSet<>();
+
+    private final TreeMap<String, UserProfile> users = new TreeMap<>();
+    private final LinkedHashMap<UserProfile, LinkedHashSet<Post>> postsByUser = new LinkedHashMap<>();
 
     @Override
     public void registerUser(UserProfile userProfile) throws UserRegistrationException {
         if (userProfile == null) {
             throw new IllegalArgumentException("User profile cannot be null");
         }
-        if (users.contains(userProfile)) {
+        if (users.containsKey(userProfile.getUsername())) {
             throw new UserRegistrationException("User profile is already registered");
         }
-        users.add(userProfile);
+        users.put(userProfile.getUsername(), userProfile);
+        postsByUser.put(userProfile, new LinkedHashSet<>());  
     }
 
     @Override
     public Set<UserProfile> getAllUsers() {
-        return Collections.unmodifiableSet(users);
+        return Collections.unmodifiableSet(new TreeSet<>(users.values()));
     }
 
     @Override
@@ -41,17 +45,22 @@ public class SocialNetworkImpl implements SocialNetwork {
         if (userProfile == null || content == null || content.isBlank()) {
             throw new IllegalArgumentException("User profile or content cannot be null/empty");
         }
-        if (!users.contains(userProfile)) {
+        if (!users.containsKey(userProfile.getUsername())) {
             throw new UserRegistrationException("User profile is not registered");
         }
+
         Post newPost = new SocialFeedPost(userProfile, content);
-        posts.add(newPost);
+        postsByUser.get(userProfile).add(newPost);  
         return newPost;
     }
 
     @Override
     public Collection<Post> getPosts() {
-        return Collections.unmodifiableSet(posts);
+        LinkedHashSet<Post> allPosts = new LinkedHashSet<>();
+        for (LinkedHashSet<Post> userPosts : postsByUser.values()) {
+            allPosts.addAll(userPosts);
+        }
+        return Collections.unmodifiableSet(allPosts);
     }
 
     @Override
@@ -62,7 +71,6 @@ public class SocialNetworkImpl implements SocialNetwork {
 
         Set<UserProfile> reachedUsers = new HashSet<>();
         UserProfile author = post.getAuthor();
-
         traverseFriends(author, reachedUsers);
 
         Set<UserProfile> finalReachedUsers = new HashSet<>();
@@ -75,9 +83,6 @@ public class SocialNetworkImpl implements SocialNetwork {
         return finalReachedUsers;
     }
 
-    /**
-     * Helper method to traverse the network of friends up to friends of friends.
-     */
     private void traverseFriends(UserProfile user, Set<UserProfile> reachedUsers) {
         Queue<UserProfile> toVisit = new LinkedList<>();
         Set<UserProfile> visited = new HashSet<>();
@@ -87,7 +92,6 @@ public class SocialNetworkImpl implements SocialNetwork {
 
         while (!toVisit.isEmpty()) {
             UserProfile current = toVisit.poll();
-
             for (UserProfile friend : current.getFriends()) {
                 if (!visited.contains(friend)) {
                     visited.add(friend);
@@ -98,11 +102,8 @@ public class SocialNetworkImpl implements SocialNetwork {
         }
     }
 
-    /**
-     * Helper method to check if two users have at least one common interest.
-     */
     private boolean hasCommonInterest(UserProfile author, UserProfile user) {
-        for (Interest interest : user.getInterests()) {
+        for (var interest : user.getInterests()) {
             if (author.getInterests().contains(interest)) {
                 return true;
             }
@@ -116,7 +117,7 @@ public class SocialNetworkImpl implements SocialNetwork {
         if (userProfile1 == null || userProfile2 == null) {
             throw new IllegalArgumentException("User profiles cannot be null");
         }
-        if (!users.contains(userProfile1) || !users.contains(userProfile2)) {
+        if (!users.containsKey(userProfile1.getUsername()) || !users.containsKey(userProfile2.getUsername())) {
             throw new UserRegistrationException("Both users must be registered");
         }
 
@@ -128,8 +129,7 @@ public class SocialNetworkImpl implements SocialNetwork {
     @Override
     public SortedSet<UserProfile> getAllProfilesSortedByFriendsCount() {
         SortedSet<UserProfile> sortedProfiles = new TreeSet<>(new UserProfileFriendCountComparator());
-        sortedProfiles.addAll(users);
+        sortedProfiles.addAll(users.values());
         return sortedProfiles;
     }
 }
-

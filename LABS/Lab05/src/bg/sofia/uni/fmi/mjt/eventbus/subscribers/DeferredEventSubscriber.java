@@ -9,6 +9,7 @@ import bg.sofia.uni.fmi.mjt.eventbus.events.Event;
 import bg.sofia.uni.fmi.mjt.eventbus.events.EventComparator;
 
 public class DeferredEventSubscriber<T extends Event<?>> implements Subscriber<T>, Iterable<T> {
+    
     private final List<T> events = new ArrayList<>();
     /**
      * Store an event for processing at a later time.
@@ -32,7 +33,7 @@ public class DeferredEventSubscriber<T extends Event<?>> implements Subscriber<T
      */
     public Iterator<T> iterator() {
         List<T> sortedEvents = new ArrayList<>(events);
-        sortedEvents.sort(new EventComparator().reversed());
+        sortedEvents.sort(new EventComparator());
         return Collections.unmodifiableList(sortedEvents).iterator();
     }
 

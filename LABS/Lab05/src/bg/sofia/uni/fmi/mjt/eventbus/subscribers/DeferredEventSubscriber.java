@@ -3,14 +3,15 @@ package bg.sofia.uni.fmi.mjt.eventbus.subscribers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
+import java.util.PriorityQueue;
 
 import bg.sofia.uni.fmi.mjt.eventbus.events.Event;
 import bg.sofia.uni.fmi.mjt.eventbus.events.EventComparator;
 
 public class DeferredEventSubscriber<T extends Event<?>> implements Subscriber<T>, Iterable<T> {
-    
-    private final List<T> events = new ArrayList<>();
+
+    private final PriorityQueue<T> events = new PriorityQueue<>(new EventComparator());
+
     /**
      * Store an event for processing at a later time.
      * @param event the event to be processed
@@ -21,20 +22,19 @@ public class DeferredEventSubscriber<T extends Event<?>> implements Subscriber<T
         if (event == null) {
             throw new IllegalArgumentException("Event cannot be null");
         }
-        events.add(event);
+        events.offer(event);
     }
 
     /**
-     * Get an iterator for the unprocessed events. The iterator should provide the events sorted by
+     * Get an iterator for the unprocessed events. The iterator provides the events sorted by
      * their priority in descending order. Events with equal priority are ordered in ascending order
      * of their timestamps.
      *
      * @return an iterator for the unprocessed events
      */
+    @Override
     public Iterator<T> iterator() {
-        List<T> sortedEvents = new ArrayList<>(events);
-        sortedEvents.sort(new EventComparator());
-        return Collections.unmodifiableList(sortedEvents).iterator();
+        return Collections.unmodifiableList(new ArrayList<>(events)).iterator();
     }
 
     /**

@@ -7,10 +7,14 @@ import bg.sofia.uni.fmi.mjt.olympics.competitor.Athlete;
 import bg.sofia.uni.fmi.mjt.olympics.competitor.Medal;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Set;
+import  java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MJTOlympicsTest {
 

@@ -61,12 +61,12 @@ public class MapWrapper {
         int maxRow = 0;
         int maxCol = 0;
 
-        for (Location loc : locationEntityMap.keySet()) {
-            if (loc.x() > maxRow) {
-                maxRow = loc.x();
+        for (Location location : locationEntityMap.keySet()) {
+            if (location.x() > maxRow) {
+                maxRow = location.x();
             }
-            if (loc.y() > maxCol) {
-                maxCol = loc.y();
+            if (location.y() > maxCol) {
+                maxCol = location.y();
             }
         }
 
@@ -100,7 +100,7 @@ public class MapWrapper {
         MapEntity entity;
 
         try {
-            entity = MapEntity.fromSymbol(symbol, i, j);
+            entity = MapEntity.parseFromSymbol(symbol, i, j);
         } catch (IllegalArgumentException e) {
             throw new InvalidMapLayoutException("Invalid symbol in map layout at position (" + i + ", " + j + ")", e);
         }

@@ -6,10 +6,14 @@ import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntityType;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.Delivery;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryInfo;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.ShippingMethod;
+import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapLayoutException;
 import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidOrderException;
 import bg.sofia.uni.fmi.mjt.glovo.exception.NoAvailableDeliveryGuyException;
 import bg.sofia.uni.fmi.mjt.glovo.exception.PathNotFoundException;
+import bg.sofia.uni.fmi.mjt.glovo.comparators.CheapestDeliveryComparator;
+import bg.sofia.uni.fmi.mjt.glovo.comparators.FastestDeliveryComparator;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class Glovo implements GlovoApi {
@@ -17,6 +21,26 @@ public class Glovo implements GlovoApi {
 
     public Glovo(char[][] mapLayout) {
         this.mapWrapper = new MapWrapper(mapLayout);
+        validateMap();
+    }
+
+    private void validateMap() {
+        List<MapEntity> restaurants = mapWrapper.getRestaurants();
+        List<MapEntity> clients = mapWrapper.getClients();
+        List<MapEntity> deliveryGuys = mapWrapper.getDeliveryGuys();
+
+        if (restaurants.size() != 1) {
+            throw new InvalidMapLayoutException("The map must contain exactly one restaurant, found: "
+                    + restaurants.size());
+        }
+
+        if (clients.size() != 1) {
+            throw new InvalidMapLayoutException("The map must contain exactly one client, found: " + clients.size());
+        }
+
+        if (deliveryGuys.isEmpty()) {
+            throw new InvalidMapLayoutException("The map must contain at least one delivery guy.");
+        }
     }
 
     MapWrapper getMapWrapper() {
@@ -67,10 +91,17 @@ public class Glovo implements GlovoApi {
                                            List<MapEntity> deliveryGuys) throws NoAvailableDeliveryGuyException {
         Delivery bestDelivery = null;
 
+        Comparator<Delivery> comparator = (method == ShippingMethod.CHEAPEST)
+                ? new CheapestDeliveryComparator()
+                : new FastestDeliveryComparator();
+
         for (MapEntity deliveryGuy : deliveryGuys) {
-            Delivery current = evaluateDelivery(deliveryGuy, restaurant, client, foodItem, method, maxPrice, maxTime);
-            if (current != null && (bestDelivery == null || compareDeliveries(bestDelivery, current, method))) {
-                bestDelivery = current;
+            Delivery currentDelivery = evaluateDelivery(deliveryGuy, restaurant, client,
+                                                        foodItem, method, maxPrice, maxTime);
+            if (currentDelivery != null) {
+                if (bestDelivery == null || comparator.compare(currentDelivery, bestDelivery) < 0) {
+                    bestDelivery = currentDelivery;
+                }
             }
         }
 
@@ -111,12 +142,5 @@ public class Glovo implements GlovoApi {
         if (client.type() != MapEntityType.CLIENT || restaurant.type() != MapEntityType.RESTAURANT) {
             throw new InvalidOrderException("Invalid MapEntity types for client or restaurant");
         }
-    }
-
-    private boolean compareDeliveries(Delivery d1, Delivery d2, ShippingMethod method) {
-        if (method == ShippingMethod.CHEAPEST) {
-            return d2.getDeliveryCost().price() < d1.getDeliveryCost().price();
-        }
-        return d2.getDeliveryCost().estimatedTime() < d1.getDeliveryCost().estimatedTime();
     }
 }

@@ -78,7 +78,7 @@ public class Glovo implements GlovoApi {
             throws NoAvailableDeliveryGuyException, InvalidOrderException {
         validateOrder(client, restaurant);
 
-        List<MapEntity> deliveryGuys = mapWrapper.findDeliveryGuys();
+        List<MapEntity> deliveryGuys = mapWrapper.getDeliveryGuys();
         if (deliveryGuys.isEmpty()) {
             throw new NoAvailableDeliveryGuyException("No delivery guys available for the delivery");
         }
@@ -88,7 +88,7 @@ public class Glovo implements GlovoApi {
 
     private Delivery determineBestDelivery(MapEntity client, MapEntity restaurant, String foodItem,
                                            ShippingMethod method, Double maxPrice, Integer maxTime,
-                                           List<MapEntity> deliveryGuys) throws NoAvailableDeliveryGuyException {
+                                           List<MapEntity> deliveryGuys) {
         Delivery bestDelivery = null;
 
         Comparator<Delivery> comparator = (method == ShippingMethod.CHEAPEST)
@@ -106,7 +106,7 @@ public class Glovo implements GlovoApi {
         }
 
         if (bestDelivery == null) {
-            throw new NoAvailableDeliveryGuyException("No suitable delivery option found for the constraints provided");
+            throw new PathNotFoundException("No suitable delivery option found for the constraints provided");
         }
 
         return bestDelivery;

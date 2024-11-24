@@ -7,7 +7,7 @@ public enum DeliveryType {
     private final int pricePerKilometer;
     private final int timePerKilometer;
 
-    private DeliveryType(int pricePerKilometer, int timePerKilometer) {
+    DeliveryType(int pricePerKilometer, int timePerKilometer) {
         this.pricePerKilometer = pricePerKilometer;
         this.timePerKilometer = timePerKilometer;
     }

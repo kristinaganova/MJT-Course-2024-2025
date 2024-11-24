@@ -20,13 +20,13 @@ public class ControlCenter implements ControlCenterApi {
     @Override
     public DeliveryInfo findOptimalDeliveryGuy(Location restaurantLocation, Location clientLocation,
                                                double maxPrice, int maxTime, ShippingMethod shippingMethod) {
-        List<MapEntity> deliveryGuys = mapWrapper.findDeliveryGuys();
+        List<MapEntity> deliveryGuys = mapWrapper.getDeliveryGuys();
         DeliveryInfo bestDelivery = null;
 
         for (MapEntity deliveryGuy : deliveryGuys) {
             DeliveryInfo currentDelivery = mapWrapper.calculateDeliveryInfo(deliveryGuy,
-                    new MapEntity(MapEntityType.RESTAURANT, restaurantLocation, null),
-                    new MapEntity(MapEntityType.CLIENT, clientLocation, null),
+                    new MapEntity(restaurantLocation, MapEntityType.RESTAURANT),
+                    new MapEntity(clientLocation, MapEntityType.CLIENT),
                     shippingMethod);
 
             if (currentDelivery == null || !isWithinConstraints(currentDelivery, maxPrice, maxTime)) {

@@ -36,7 +36,6 @@ public class Graph {
         return adjacencyList;
     }
 
-    // BFS directly within the Graph class
     public List<Location> bfs(Location start, Location goal) {
         if (start.equals(goal)) {
             return List.of(start);

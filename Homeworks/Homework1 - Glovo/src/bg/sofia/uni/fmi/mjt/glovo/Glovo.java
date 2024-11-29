@@ -34,8 +34,8 @@ public class Glovo implements GlovoApi {
                                                 + restaurants.size());
         }
 
-        if (clients.size() != 1) {
-            throw new InvalidMapLayoutException("The map must contain exactly one client, found: " + clients.size());
+        if (clients.size() < 1) {
+            throw new InvalidMapLayoutException("The map must contain at least one client");
         }
 
         if (deliveryGuys.isEmpty()) {

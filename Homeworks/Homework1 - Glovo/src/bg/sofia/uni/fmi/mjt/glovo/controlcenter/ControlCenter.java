@@ -7,6 +7,7 @@ import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapWrapper;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryInfo;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryType;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.ShippingMethod;
+import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapLayoutException;
 
 import java.util.List;
 
@@ -14,6 +15,9 @@ public class ControlCenter implements ControlCenterApi {
     private final MapWrapper mapWrapper;
 
     public ControlCenter(char[][] mapLayout) {
+        if (mapLayout == null || mapLayout.length == 0) {
+            throw new InvalidMapLayoutException("Map layout cannot be null or empty.");
+        }
         this.mapWrapper = new MapWrapper(mapLayout);
     }
 

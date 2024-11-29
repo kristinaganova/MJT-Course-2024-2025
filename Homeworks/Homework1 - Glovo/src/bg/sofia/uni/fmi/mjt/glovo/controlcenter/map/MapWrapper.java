@@ -1,10 +1,6 @@
 package bg.sofia.uni.fmi.mjt.glovo.controlcenter.map;
 
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.graph.Graph;
-import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.graph.GraphAlgorithms;
-import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryInfo;
-import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryType;
-import bg.sofia.uni.fmi.mjt.glovo.delivery.ShippingMethod;
 import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapLayoutException;
 
 import java.util.ArrayList;
@@ -25,10 +21,10 @@ public class MapWrapper {
         this.restaurants = new ArrayList<>();
         this.clients = new ArrayList<>();
         this.deliveryGuys = new ArrayList<>();
-        buildGraphAndParseEntities(mapLayout);
+        buildGraph(mapLayout);
     }
 
-    private void buildGraphAndParseEntities(char[][] mapLayout) {
+    private void buildGraph(char[][] mapLayout) {
         int rows = mapLayout.length;
         int cols = mapLayout[0].length;
 
@@ -72,46 +68,35 @@ public class MapWrapper {
 
     private List<Location> findNeighbors(char[][] mapLayout, int i, int j, int rows, int cols) {
         List<Location> neighbors = new ArrayList<>();
-
         if (i > 0 && mapLayout[i - 1][j] != '#') neighbors.add(new Location(i - 1, j));
         if (i < rows - 1 && mapLayout[i + 1][j] != '#') neighbors.add(new Location(i + 1, j));
         if (j > 0 && mapLayout[i][j - 1] != '#') neighbors.add(new Location(i, j - 1));
         if (j < cols - 1 && mapLayout[i][j + 1] != '#') neighbors.add(new Location(i, j + 1));
-
         return neighbors;
     }
 
     public List<Location> bfs(Location start, Location goal) {
-        return GraphAlgorithms.bfs(graph, start, goal);
+        return graph.bfs(start, goal);
     }
 
-    public double calculateDeliveryDistance(List<Location> path) {
-        return GraphAlgorithms.calculatePathDistance(path);
+    public Map<Location, MapEntity> getLocationEntityMap() {
+        return locationEntityMap;
     }
 
-    public DeliveryInfo calculateDeliveryInfo(MapEntity deliveryGuy, MapEntity restaurant,
-                                              MapEntity client, ShippingMethod method) {
-        List<Location> pathToRestaurant = bfs(deliveryGuy.location(), restaurant.location());
-        List<Location> pathToClient = bfs(restaurant.location(), client.location());
-
-        double distanceToRestaurant = calculateDeliveryDistance(pathToRestaurant);
-        double distanceToClient = calculateDeliveryDistance(pathToClient);
-        double totalDistance = distanceToRestaurant + distanceToClient;
-
-        DeliveryType deliveryType = mapEntityTypeToDeliveryType(deliveryGuy.type());
-
-        double totalPrice = totalDistance * deliveryType.getPricePerKilometer();
-        int totalTime = (int) (totalDistance * deliveryType.getTimePerKilometer());
-
-        return new DeliveryInfo(deliveryGuy.location(), totalPrice, totalTime, deliveryType);
+    public List<MapEntity> getRestaurants() {
+        return restaurants;
     }
 
-    public static DeliveryType mapEntityTypeToDeliveryType(MapEntityType type) {
-        return switch (type) {
-            case DELIVERY_GUY_BIKE -> DeliveryType.BIKE;
-            case DELIVERY_GUY_CAR -> DeliveryType.CAR;
-            default -> throw new IllegalArgumentException("Invalid delivery guy type: " + type);
-        };
+    public List<MapEntity> getClients() {
+        return clients;
+    }
+
+    public List<MapEntity> getDeliveryGuys() {
+        return deliveryGuys;
+    }
+
+    public Graph getGraph() {
+        return graph;
     }
 
     public MapEntity[][] getEntityLayout() {
@@ -126,17 +111,5 @@ public class MapWrapper {
         }
 
         return layout;
-    }
-
-    public List<MapEntity> getRestaurants() {
-        return restaurants;
-    }
-
-    public List<MapEntity> getClients() {
-        return clients;
-    }
-
-    public List<MapEntity> getDeliveryGuys() {
-        return deliveryGuys;
     }
 }

@@ -5,16 +5,20 @@ import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntity;
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntityType;
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapWrapper;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryInfo;
+import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryType;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.ShippingMethod;
 
 import java.util.List;
 
 public class ControlCenter implements ControlCenterApi {
-
     private final MapWrapper mapWrapper;
 
     public ControlCenter(char[][] mapLayout) {
         this.mapWrapper = new MapWrapper(mapLayout);
+    }
+
+    public MapWrapper getMap() {
+        return mapWrapper;
     }
 
     @Override
@@ -24,17 +28,17 @@ public class ControlCenter implements ControlCenterApi {
         DeliveryInfo bestDelivery = null;
 
         for (MapEntity deliveryGuy : deliveryGuys) {
-            DeliveryInfo currentDelivery = mapWrapper.calculateDeliveryInfo(deliveryGuy,
+            DeliveryInfo currentDelivery = calculateDeliveryInfo(
+                    deliveryGuy,
                     new MapEntity(restaurantLocation, MapEntityType.RESTAURANT),
                     new MapEntity(clientLocation, MapEntityType.CLIENT),
-                    shippingMethod);
+                    shippingMethod
+            );
 
-            if (currentDelivery == null || !isWithinConstraints(currentDelivery, maxPrice, maxTime)) {
-                continue;
-            }
-
-            if (bestDelivery == null || compareDeliveries(bestDelivery, currentDelivery, shippingMethod)) {
-                bestDelivery = currentDelivery;
+            if (currentDelivery != null && isWithinConstraints(currentDelivery, maxPrice, maxTime)) {
+                if (bestDelivery == null || compareDeliveries(bestDelivery, currentDelivery, shippingMethod)) {
+                    bestDelivery = currentDelivery;
+                }
             }
         }
 
@@ -44,6 +48,35 @@ public class ControlCenter implements ControlCenterApi {
     @Override
     public MapEntity[][] getLayout() {
         return mapWrapper.getEntityLayout();
+    }
+
+    public DeliveryInfo calculateDeliveryInfo(MapEntity deliveryGuy, MapEntity restaurant,
+                                              MapEntity client, ShippingMethod method) {
+        List<Location> pathToRestaurant = mapWrapper.getGraph().bfs(deliveryGuy.location(), restaurant.location());
+        List<Location> pathToClient = mapWrapper.getGraph().bfs(restaurant.location(), client.location());
+
+        double distanceToRestaurant = calculateDeliveryDistance(pathToRestaurant);
+        double distanceToClient = calculateDeliveryDistance(pathToClient);
+        double totalDistance = distanceToRestaurant + distanceToClient;
+
+        DeliveryType deliveryType = mapEntityTypeToDeliveryType(deliveryGuy.type());
+
+        double totalPrice = totalDistance * deliveryType.getPricePerKilometer();
+        int totalTime = (int) (totalDistance * deliveryType.getTimePerKilometer());
+
+        return new DeliveryInfo(deliveryGuy.location(), totalPrice, totalTime, deliveryType);
+    }
+
+    public double calculateDeliveryDistance(List<Location> path) {
+        return mapWrapper.getGraph().calculatePathDistance(path);
+    }
+
+    public static DeliveryType mapEntityTypeToDeliveryType(MapEntityType type) {
+        return switch (type) {
+            case DELIVERY_GUY_BIKE -> DeliveryType.BIKE;
+            case DELIVERY_GUY_CAR -> DeliveryType.CAR;
+            default -> throw new IllegalArgumentException("Invalid delivery guy type: " + type);
+        };
     }
 
     private boolean isWithinConstraints(DeliveryInfo info, double maxPrice, int maxTime) {

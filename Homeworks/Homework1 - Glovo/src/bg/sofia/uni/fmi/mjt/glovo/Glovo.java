@@ -1,6 +1,6 @@
 package bg.sofia.uni.fmi.mjt.glovo;
 
-import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapWrapper;
+import bg.sofia.uni.fmi.mjt.glovo.controlcenter.ControlCenter;
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntity;
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntityType;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.Delivery;
@@ -17,21 +17,21 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Glovo implements GlovoApi {
-    private final MapWrapper mapWrapper;
+    private final ControlCenter controlCenter;
 
     public Glovo(char[][] mapLayout) {
-        this.mapWrapper = new MapWrapper(mapLayout);
+        this.controlCenter = new ControlCenter(mapLayout);
         validateMap();
     }
 
     private void validateMap() {
-        List<MapEntity> restaurants = mapWrapper.getRestaurants();
-        List<MapEntity> clients = mapWrapper.getClients();
-        List<MapEntity> deliveryGuys = mapWrapper.getDeliveryGuys();
+        List<MapEntity> restaurants = controlCenter.getMap().getRestaurants();
+        List<MapEntity> clients = controlCenter.getMap().getClients();
+        List<MapEntity> deliveryGuys = controlCenter.getMap().getDeliveryGuys();
 
         if (restaurants.size() != 1) {
             throw new InvalidMapLayoutException("The map must contain exactly one restaurant, found: "
-                    + restaurants.size());
+                                                + restaurants.size());
         }
 
         if (clients.size() != 1) {
@@ -41,10 +41,6 @@ public class Glovo implements GlovoApi {
         if (deliveryGuys.isEmpty()) {
             throw new InvalidMapLayoutException("The map must contain at least one delivery guy.");
         }
-    }
-
-    MapWrapper getMapWrapper() {
-        return mapWrapper;
     }
 
     @Override
@@ -78,7 +74,7 @@ public class Glovo implements GlovoApi {
             throws NoAvailableDeliveryGuyException, InvalidOrderException {
         validateOrder(client, restaurant);
 
-        List<MapEntity> deliveryGuys = mapWrapper.getDeliveryGuys();
+        List<MapEntity> deliveryGuys = controlCenter.getMap().getDeliveryGuys();
         if (deliveryGuys.isEmpty()) {
             throw new NoAvailableDeliveryGuyException("No delivery guys available for the delivery");
         }
@@ -96,8 +92,9 @@ public class Glovo implements GlovoApi {
                 : new FastestDeliveryComparator();
 
         for (MapEntity deliveryGuy : deliveryGuys) {
-            Delivery currentDelivery = evaluateDelivery(deliveryGuy, restaurant, client,
-                                                        foodItem, method, maxPrice, maxTime);
+            Delivery currentDelivery = createDeliveryIfValid(deliveryGuy, restaurant, client, foodItem,
+                                                             method, maxPrice, maxTime);
+
             if (currentDelivery != null) {
                 if (bestDelivery == null || comparator.compare(currentDelivery, bestDelivery) < 0) {
                     bestDelivery = currentDelivery;
@@ -112,12 +109,12 @@ public class Glovo implements GlovoApi {
         return bestDelivery;
     }
 
-    private Delivery evaluateDelivery(MapEntity deliveryGuy, MapEntity restaurant, MapEntity client, String foodItem,
-                                      ShippingMethod method, Double maxPrice, Integer maxTime) {
+    private Delivery createDeliveryIfValid(MapEntity deliveryGuy, MapEntity restaurant, MapEntity client,
+                                           String foodItem, ShippingMethod method, Double maxPrice, Integer maxTime) {
         DeliveryInfo info;
 
         try {
-            info = mapWrapper.calculateDeliveryInfo(deliveryGuy, restaurant, client, method);
+            info = controlCenter.calculateDeliveryInfo(deliveryGuy, restaurant, client, method);
         } catch (PathNotFoundException e) {
             return null;
         }
@@ -137,10 +134,10 @@ public class Glovo implements GlovoApi {
 
     private void validateOrder(MapEntity client, MapEntity restaurant) throws InvalidOrderException {
         if (client == null || restaurant == null) {
-            throw new InvalidOrderException("Client or restaurant location is invalid");
+            throw new InvalidOrderException("Client or restaurant location is invalid.");
         }
         if (client.type() != MapEntityType.CLIENT || restaurant.type() != MapEntityType.RESTAURANT) {
-            throw new InvalidOrderException("Invalid MapEntity types for client or restaurant");
+            throw new InvalidOrderException("Invalid MapEntity types for client or restaurant.");
         }
     }
 }

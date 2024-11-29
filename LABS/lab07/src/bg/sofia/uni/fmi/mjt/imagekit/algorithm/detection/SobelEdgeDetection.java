@@ -1,10 +1,9 @@
 package bg.sofia.uni.fmi.mjt.imagekit.algorithm.detection;
 
 import java.awt.image.BufferedImage;
-
 import bg.sofia.uni.fmi.mjt.imagekit.algorithm.ImageAlgorithm;
 
-public class SobelEdgeDetection implements EdgeDetectionAlgorithm {
+public class SobelEdgeDetection implements ImageAlgorithm {
 
     private final ImageAlgorithm grayscaleAlgorithm;
 
@@ -29,14 +28,17 @@ public class SobelEdgeDetection implements EdgeDetectionAlgorithm {
 
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
-                        int rgb = newImage.getRGB(x + i, y + j) & MAX_PIXEL_VALUE;
-                        gx += rgb * SOBEL_X[i + 1][j + 1];
-                        gy += rgb * SOBEL_Y[i + 1][j + 1];
+                        int[] components = ImageAlgorithm.getRGBComponents(newImage.getRGB(x + i, y + j));
+                        int intensity = components[0];
+
+                        gx += intensity * SOBEL_X[i + 1][j + 1];
+                        gy += intensity * SOBEL_Y[i + 1][j + 1];
                     }
                 }
-                int edgeValue = (int) Math.min(MAX_PIXEL_VALUE, Math.sqrt(gx * gx + gy * gy));
-                int egdeRGB = (edgeValue << BLOCK_SIZE) | (edgeValue << (BLOCK_SIZE / 2)) | edgeValue;
-                edgeDetectionImage.setRGB(x, y, egdeRGB);
+
+                int edgeValue = ImageAlgorithm.clamp((int) Math.sqrt(gx * gx + gy * gy));
+                int edgeRgb = ImageAlgorithm.combineRGB(edgeValue, edgeValue, edgeValue);
+                edgeDetectionImage.setRGB(x, y, edgeRgb);
             }
         }
         return edgeDetectionImage;

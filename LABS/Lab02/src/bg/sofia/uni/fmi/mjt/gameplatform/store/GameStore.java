@@ -3,7 +3,6 @@ package bg.sofia.uni.fmi.mjt.gameplatform.store;
 import bg.sofia.uni.fmi.mjt.gameplatform.store.item.StoreItem;
 import bg.sofia.uni.fmi.mjt.gameplatform.store.item.filter.ItemFilter;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 public class GameStore implements StoreAPI {
     private static final String VAN40 = "VAN40";

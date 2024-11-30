@@ -103,8 +103,18 @@ public class MapWrapper {
     }
 
     public MapEntity[][] getEntityLayout() {
-        int maxRow = locationEntityMap.keySet().stream().mapToInt(Location::x).max().orElse(0);
-        int maxCol = locationEntityMap.keySet().stream().mapToInt(Location::y).max().orElse(0);
+        int maxRow = 0;
+        int maxCol = 0;
+
+        for (Location location : locationEntityMap.keySet()) {
+            if (location.x() > maxRow) {
+                maxRow = location.x();
+            }
+
+            if (location.y() > maxCol) {
+                maxCol = location.y();
+            }
+        }
 
         MapEntity[][] layout = new MapEntity[maxRow + 1][maxCol + 1];
 

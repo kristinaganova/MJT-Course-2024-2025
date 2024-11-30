@@ -7,6 +7,7 @@ import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapWrapper;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryInfo;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryType;
 import bg.sofia.uni.fmi.mjt.glovo.delivery.ShippingMethod;
+import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapEntityException;
 import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapLayoutException;
 
 import java.util.List;
@@ -79,7 +80,7 @@ public class ControlCenter implements ControlCenterApi {
         return switch (type) {
             case DELIVERY_GUY_BIKE -> DeliveryType.BIKE;
             case DELIVERY_GUY_CAR -> DeliveryType.CAR;
-            default -> throw new IllegalArgumentException("Invalid delivery guy type: " + type);
+            default -> throw new InvalidMapEntityException("Invalid delivery guy type: " + type);
         };
     }
 

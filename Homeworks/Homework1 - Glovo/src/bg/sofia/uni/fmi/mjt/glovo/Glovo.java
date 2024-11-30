@@ -29,9 +29,8 @@ public class Glovo implements GlovoApi {
         List<MapEntity> clients = controlCenter.getMap().getClients();
         List<MapEntity> deliveryGuys = controlCenter.getMap().getDeliveryGuys();
 
-        if (restaurants.size() != 1) {
-            throw new InvalidMapLayoutException("The map must contain exactly one restaurant, found: "
-                                                + restaurants.size());
+        if (restaurants.size() < 1) {
+            throw new InvalidMapLayoutException("The map must contain at least one restaurant ");
         }
 
         if (clients.size() < 1) {

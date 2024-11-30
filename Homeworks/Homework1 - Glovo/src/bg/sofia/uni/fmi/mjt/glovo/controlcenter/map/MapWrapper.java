@@ -1,7 +1,6 @@
 package bg.sofia.uni.fmi.mjt.glovo.controlcenter.map;
 
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.graph.Graph;
-import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapLayoutException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,11 +50,7 @@ public class MapWrapper {
     }
 
     private MapEntity parseEntity(char symbol, int x, int y) {
-        try {
-            return MapEntity.parseFromSymbol(symbol, x, y);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidMapLayoutException("Invalid symbol in map layout at position (" + x + ", " + y + ")", e);
-        }
+        return MapEntity.parseFromSymbol(symbol, x, y);
     }
 
     private void categorizeEntity(MapEntity entity) {
@@ -68,10 +63,18 @@ public class MapWrapper {
 
     private List<Location> findNeighbors(char[][] mapLayout, int i, int j, int rows, int cols) {
         List<Location> neighbors = new ArrayList<>();
-        if (i > 0 && mapLayout[i - 1][j] != '#') neighbors.add(new Location(i - 1, j));
-        if (i < rows - 1 && mapLayout[i + 1][j] != '#') neighbors.add(new Location(i + 1, j));
-        if (j > 0 && mapLayout[i][j - 1] != '#') neighbors.add(new Location(i, j - 1));
-        if (j < cols - 1 && mapLayout[i][j + 1] != '#') neighbors.add(new Location(i, j + 1));
+        if (i > 0 && mapLayout[i - 1][j] != '#') {
+            neighbors.add(new Location(i - 1, j));
+        }
+        if (i < rows - 1 && mapLayout[i + 1][j] != '#') {
+            neighbors.add(new Location(i + 1, j));
+        }
+        if (j > 0 && mapLayout[i][j - 1] != '#') {
+            neighbors.add(new Location(i, j - 1));
+        }
+        if (j < cols - 1 && mapLayout[i][j + 1] != '#') {
+            neighbors.add(new Location(i, j + 1));
+        }
         return neighbors;
     }
 

@@ -1,5 +1,7 @@
 package bg.sofia.uni.fmi.mjt.glovo.controlcenter.map;
 
+import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidMapEntityException;
+
 public enum MapEntityType {
     ROAD('.'),
     WALL('#'),
@@ -24,6 +26,6 @@ public enum MapEntityType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unknown map symbol: " + symbol);
+        throw new InvalidMapEntityException("Unknown map symbol: " + symbol);
     }
 }

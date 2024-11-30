@@ -1,60 +1,70 @@
-package bg.sofia.uni.fmi.mjt.glovo;
-
-import bg.sofia.uni.fmi.mjt.glovo.controlcenter.ControlCenter;
+import bg.sofia.uni.fmi.mjt.glovo.Glovo;
 import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.Location;
-import bg.sofia.uni.fmi.mjt.glovo.delivery.DeliveryInfo;
-import bg.sofia.uni.fmi.mjt.glovo.delivery.ShippingMethod;
+import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntity;
+import bg.sofia.uni.fmi.mjt.glovo.controlcenter.map.MapEntityType;
+import bg.sofia.uni.fmi.mjt.glovo.delivery.Delivery;
+import bg.sofia.uni.fmi.mjt.glovo.exception.InvalidOrderException;
+import bg.sofia.uni.fmi.mjt.glovo.exception.NoAvailableDeliveryGuyException;
 
 public class Main {
+
     public static void main(String[] args) {
+        // Define the map layout
         char[][] mapLayout = {
-                {'#', '#', '#', '.', '#'},
-                {'#', '.', 'B', 'R', '.'},
-                {'.', '.', '#', '.', '#'},
-                {'#', 'C', '.', 'A', '.'},
-                {'#', '.', '#', '#', '#'}
+                {'#', '#', '#', '.', 'C'},
+                {'R', '.', 'B', '.', 'R'},
+                {'.', '.', '#', '.', '.'},
+                {'#', '.', '.', '#', '.'},
+                {'#', '.', '.', 'A', '.'}
         };
 
-        ControlCenter controlCenter = new ControlCenter(mapLayout);
+        // Initialize Glovo with the map layout
+        Glovo glovoApp = new Glovo(mapLayout);
 
-        System.out.println("Map Layout:");
-        printMap(controlCenter);
+        // Define entities
+        MapEntity client = new MapEntity(new Location(0, 4), MapEntityType.CLIENT);
+        MapEntity client2 = new MapEntity(new Location(3, 4), MapEntityType.CLIENT);
+        MapEntity restaurant = new MapEntity(new Location(1, 4), MapEntityType.RESTAURANT);
 
-        Location restaurantLocation = new Location(1, 1); // R
-        Location clientLocation = new Location(1, 3);     // C
+        // Perform deliveries
+        try {
+            // Cheapest delivery
+            Delivery cheapestDelivery = glovoApp.getCheapestDelivery(client, restaurant, "Pizza");
+            System.out.println("Cheapest Delivery:");
+            printDeliveryDetails(cheapestDelivery);
 
-        System.out.println("\nFinding the cheapest delivery...");
-        DeliveryInfo cheapestDelivery = controlCenter.findOptimalDeliveryGuy(
-                restaurantLocation, clientLocation, -1, -1, ShippingMethod.CHEAPEST);
+            // Fastest delivery
+            Delivery fastestDelivery = glovoApp.getFastestDelivery(client, restaurant, "Burger");
+            System.out.println("\nFastest Delivery:");
+            printDeliveryDetails(fastestDelivery);
 
-        if (cheapestDelivery != null) {
-            System.out.println("Cheapest delivery found: " + cheapestDelivery);
-        } else {
-            System.out.println("No delivery options available.");
-        }
+            // Fastest delivery under price
+            Delivery fastestUnderPrice = glovoApp.getFastestDeliveryUnderPrice(client, restaurant, "Sushi", 20.0);
+            System.out.println("\nFastest Delivery Under Price:");
+            printDeliveryDetails(fastestUnderPrice);
 
-        System.out.println("\nFinding the fastest delivery under 10 minutes...");
-        DeliveryInfo fastestDelivery = controlCenter.findOptimalDeliveryGuy(
-                restaurantLocation, clientLocation, -1, 10, ShippingMethod.FASTEST);
+            // Cheapest delivery within time limit
+            Delivery cheapestWithinTime = glovoApp.getCheapestDeliveryWithinTimeLimit(client2, restaurant, "Pasta", 100);
+            System.out.println("\nCheapest Delivery Within Time Limit:");
+            printDeliveryDetails(cheapestWithinTime);
 
-        if (fastestDelivery != null) {
-            System.out.println("Fastest delivery found: " + fastestDelivery);
-        } else {
-            System.out.println("No delivery options available.");
+        } catch (InvalidOrderException e) {
+            System.err.println("Invalid order: " + e.getMessage());
+        } catch (NoAvailableDeliveryGuyException e) {
+            System.err.println("No delivery guys available: " + e.getMessage());
         }
     }
 
-    private static void printMap(ControlCenter controlCenter) {
-        var layout = controlCenter.getLayout();
-        for (var row : layout) {
-            for (var entity : row) {
-                if (entity != null) {
-                    System.out.print(entity.toSymbol());
-                } else {
-                    System.out.print(' ');
-                }
-            }
-            System.out.println();
+    private static void printDeliveryDetails(Delivery delivery) {
+        if (delivery == null) {
+            System.out.println("No delivery options available.");
+            return;
         }
+        System.out.println("Client Location: " + delivery.getRoute().client());
+        System.out.println("Restaurant Location: " + delivery.getRoute().restaurant());
+        System.out.println("Delivery Guy Location: " + delivery.getRoute().deliveryGuy());
+        System.out.println("Food Item: " + delivery.getFoodItem());
+        System.out.println("Price: $" + delivery.getDeliveryCost().price());
+        System.out.println("Estimated Time: " + delivery.getDeliveryCost().estimatedTime() + " minutes");
     }
 }

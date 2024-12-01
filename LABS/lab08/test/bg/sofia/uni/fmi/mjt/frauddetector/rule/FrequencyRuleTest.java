@@ -1,7 +1,8 @@
-package bg.sofia.uni.fmi.frauddetector.rule;
+package bg.sofia.uni.fmi.mjt.frauddetector.rule;
 
-import bg.sofia.uni.fmi.frauddetector.transaction.Channel;
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.FrequencyRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Channel;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

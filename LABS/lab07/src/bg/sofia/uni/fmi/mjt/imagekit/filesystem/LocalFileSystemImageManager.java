@@ -19,6 +19,10 @@ public class LocalFileSystemImageManager implements FileSystemImageManager {
             throw new IOException("Image file " + imageFile + " does not exist or is not a file");
         }
 
+        if (!isSupportedFormat(imageFile)) {
+            throw new IOException("Unsupported file format: " + getFileExtension(imageFile));
+        }
+
         return ImageIO.read(imageFile);
     }
 
@@ -33,7 +37,10 @@ public class LocalFileSystemImageManager implements FileSystemImageManager {
 
         List<BufferedImage> images = new ArrayList<>();
         for (File file : imagesDirectory.listFiles()) {
-            if (file.isFile() && isSupportedFormat(file)) {
+            if (file.isFile()) {
+                if (!isSupportedFormat(file)) {
+                    throw new IOException("Unsupported file format found: " + file.getName());
+                }
                 images.add(loadImage(file));
             }
         }
@@ -42,7 +49,6 @@ public class LocalFileSystemImageManager implements FileSystemImageManager {
 
     @Override
     public void saveImage(BufferedImage image, File imageFile) throws IOException {
-
         if (image == null || imageFile == null) {
             throw new IllegalArgumentException("Image or file cannot be null.");
         }
@@ -52,12 +58,15 @@ public class LocalFileSystemImageManager implements FileSystemImageManager {
         }
 
         File parentDir = imageFile.getParentFile();
-
         if (!parentDir.exists()) {
             throw new IOException("Parent directory does not exist: " + parentDir.getPath());
         }
 
         String format = getFileExtension(imageFile);
+        if (!isSupportedFormat(imageFile)) {
+            throw new IOException("Unsupported file format: " + format);
+        }
+
         ImageIO.write(image, format, imageFile);
     }
 

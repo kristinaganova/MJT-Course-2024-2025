@@ -1,4 +1,4 @@
-package bg.sofia.uni.fmi.frauddetector.transaction;
+package bg.sofia.uni.fmi.mjt.frauddetector.transaction;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

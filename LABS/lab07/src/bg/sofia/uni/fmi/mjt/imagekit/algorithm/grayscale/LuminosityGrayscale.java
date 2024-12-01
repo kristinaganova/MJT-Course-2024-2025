@@ -1,9 +1,8 @@
 package bg.sofia.uni.fmi.mjt.imagekit.algorithm.grayscale;
 
 import java.awt.image.BufferedImage;
-import bg.sofia.uni.fmi.mjt.imagekit.algorithm.ImageAlgorithm;
 
-public class LuminosityGrayscale implements ImageAlgorithm {
+public class LuminosityGrayscale implements GrayscaleAlgorithm {
 
     private static final double RED_WEIGHT = 0.21;
     private static final double GREEN_WEIGHT = 0.72;
@@ -11,24 +10,29 @@ public class LuminosityGrayscale implements ImageAlgorithm {
 
     @Override
     public BufferedImage process(BufferedImage image) {
+        if (image == null) {
+            throw new IllegalArgumentException("Image cannot be null.");
+        }
+
         int width = image.getWidth();
         int height = image.getHeight();
-        BufferedImage grayscaleImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage grayscleImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int rgb = image.getRGB(x, y);
-                int[] components = ImageAlgorithm.getRGBComponents(rgb);
+                int r = (rgb >> BLOCK_SIZE) & MAX_PIXEL_VALUE;
+                int g = (rgb >> (BLOCK_SIZE / 2)) & MAX_PIXEL_VALUE;
+                int b = rgb & MAX_PIXEL_VALUE;
 
-                int gray = (int) (RED_WEIGHT * components[0] + GREEN_WEIGHT * components[1]
-                                + BLUE_WEIGHT * components[2]);
-                gray = ImageAlgorithm.clamp(gray);
+                int gray = (int)(RED_WEIGHT * r + GREEN_WEIGHT * g + BLUE_WEIGHT * b);
+                int grayRgb = (gray << BLOCK_SIZE) | (gray << (BLOCK_SIZE / 2)) | gray;
 
-                int grayRgb = ImageAlgorithm.combineRGB(gray, gray, gray);
-                grayscaleImage.setRGB(x, y, grayRgb);
+                grayscleImage.setRGB(x, y, grayRgb);
             }
         }
 
-        return grayscaleImage;
+        return grayscleImage;
+
     }
 }

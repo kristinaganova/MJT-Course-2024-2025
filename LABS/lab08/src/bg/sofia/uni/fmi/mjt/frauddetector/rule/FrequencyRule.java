@@ -1,6 +1,6 @@
-package bg.sofia.uni.fmi.frauddetector.rule;
+package bg.sofia.uni.fmi.mjt.frauddetector.rule;
 
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 
 import java.time.temporal.TemporalAmount;
 import java.util.List;

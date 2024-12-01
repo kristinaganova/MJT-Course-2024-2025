@@ -1,13 +1,11 @@
-package bg.sofia.uni.fmi.frauddetector.rule;
+package bg.sofia.uni.fmi.mjt.frauddetector.rule;
 
-import bg.sofia.uni.fmi.frauddetector.transaction.Channel;
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.SmallTransactionsRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Channel;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 

@@ -113,7 +113,7 @@ class LocalFileSystemImageManagerTest {
     }
 
     @Test
-    void testLoadImagesFromDirectory_NullDirectory() {
+    void testLoadImagesFromDirectoryNullDirectory() {
         LocalFileSystemImageManager manager = new LocalFileSystemImageManager();
 
         assertThrows(IllegalArgumentException.class, () -> {
@@ -122,7 +122,7 @@ class LocalFileSystemImageManagerTest {
     }
 
     @Test
-    void testLoadImagesFromDirectory_NotADirectory() {
+    void testLoadImagesFromDirectoryNotADirectory() {
         File mockFile = mock(File.class);
         when(mockFile.exists()).thenReturn(true);
         when(mockFile.isDirectory()).thenReturn(false);
@@ -135,7 +135,7 @@ class LocalFileSystemImageManagerTest {
     }
 
     @Test
-    void testLoadImagesFromDirectory_WithUnsupportedFileFormats() throws IOException {
+    void testLoadImagesFromDirectoryWithUnsupportedFileFormats() throws IOException {
         File mockDir = mock(File.class);
         when(mockDir.exists()).thenReturn(true);
         when(mockDir.isDirectory()).thenReturn(true);
@@ -226,30 +226,6 @@ class LocalFileSystemImageManagerTest {
     }
 
     @Test
-    @Disabled
-    void testSaveImageSuccessfulSave() throws IOException {
-        BufferedImage mockImage = mock(BufferedImage.class);
-        File mockFile = mock(File.class);
-        File mockParentDir = mock(File.class);
-
-        when(mockFile.exists()).thenReturn(false);
-        when(mockFile.getParentFile()).thenReturn(mockParentDir);
-        when(mockParentDir.exists()).thenReturn(true);
-        when(mockParentDir.isDirectory()).thenReturn(true);
-
-        LocalFileSystemImageManager manager = new LocalFileSystemImageManager();
-
-        try (MockedStatic<ImageIO> imageIO = mockStatic(ImageIO.class)) {
-            imageIO.when(() -> ImageIO.write(eq(mockImage), anyString(), eq(mockFile)))
-                    .thenReturn(true);
-
-            manager.saveImage(mockImage, mockFile);
-
-            imageIO.verify(() -> ImageIO.write(eq(mockImage), anyString(), eq(mockFile)), times(1));
-        }
-    }
-
-    @Test
     void testIsSupportedFormatWithSupportedExtension() {
         LocalFileSystemImageManager manager = new LocalFileSystemImageManager();
 
@@ -302,31 +278,6 @@ class LocalFileSystemImageManagerTest {
         List<BufferedImage> images = manager.loadImagesFromDirectory(mockDir);
 
         assertEquals(0, images.size());
-    }
-
-    @Test
-    @Disabled
-    void testLoadImagesFromDirectoryWithMixedFileTypes() throws IOException {
-        File mockDir = mock(File.class);
-        when(mockDir.exists()).thenReturn(true);
-        when(mockDir.isDirectory()).thenReturn(true);
-
-        File imageFile = mock(File.class);
-        File textFile = mock(File.class);
-        when(imageFile.isFile()).thenReturn(true);
-        when(textFile.isFile()).thenReturn(true);
-
-        when(imageFile.getName()).thenReturn("image.png");
-        when(textFile.getName()).thenReturn("file.jpeg");
-
-        File[] mockFiles = { imageFile, textFile };
-        when(mockDir.listFiles()).thenReturn(mockFiles);
-
-        LocalFileSystemImageManager manager = new LocalFileSystemImageManager();
-
-        List<BufferedImage> images = manager.loadImagesFromDirectory(mockDir);
-
-        assertEquals(1, images.size());
     }
 
 }

@@ -1,5 +1,7 @@
-package bg.sofia.uni.fmi.frauddetector.transaction;
+package bg.sofia.uni.fmi.mjt.frauddetector.transaction;
 
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Channel;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

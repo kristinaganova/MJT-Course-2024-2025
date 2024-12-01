@@ -1,11 +1,13 @@
-package bg.sofia.uni.fmi.frauddetector.analyzer;
+package bg.sofia.uni.fmi.mjt.frauddetector.analyzer;
 
-import bg.sofia.uni.fmi.frauddetector.rule.FrequencyRule;
-import bg.sofia.uni.fmi.frauddetector.rule.LocationsRule;
-import bg.sofia.uni.fmi.frauddetector.rule.Rule;
-import bg.sofia.uni.fmi.frauddetector.rule.SmallTransactionsRule;
-import bg.sofia.uni.fmi.frauddetector.transaction.Channel;
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.analyzer.TransactionAnalyzer;
+import bg.sofia.uni.fmi.mjt.frauddetector.analyzer.TransactionAnalyzerImpl;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.FrequencyRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.LocationsRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.Rule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.SmallTransactionsRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Channel;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

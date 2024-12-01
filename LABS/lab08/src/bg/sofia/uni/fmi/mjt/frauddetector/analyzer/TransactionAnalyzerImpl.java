@@ -1,8 +1,8 @@
-package bg.sofia.uni.fmi.frauddetector.analyzer;
+package bg.sofia.uni.fmi.mjt.frauddetector.analyzer;
 
-import bg.sofia.uni.fmi.frauddetector.rule.Rule;
-import bg.sofia.uni.fmi.frauddetector.transaction.Channel;
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.Rule;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Channel;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 
 import java.io.BufferedReader;
 import java.io.Reader;
@@ -20,7 +20,7 @@ public class TransactionAnalyzerImpl implements TransactionAnalyzer {
     private final List<Rule> rules;
 
     private static final double EPSILON = 1e-9;
-
+    private static final double ROUND_SCALE  = 1e10;
 
     public TransactionAnalyzerImpl(Reader reader, List<Rule> rules) {
         if (Math.abs(rules.stream().mapToDouble(Rule::weight).sum() - 1.0) > EPSILON) {
@@ -89,10 +89,11 @@ public class TransactionAnalyzerImpl implements TransactionAnalyzer {
 
         List<Transaction> userTransactions = allTransactionsByUser(accountId);
 
-        return rules.stream()
+        double totalWeight = rules.stream()
                 .filter(rule -> rule.applicable(userTransactions))
                 .mapToDouble(Rule::weight)
                 .sum();
+        return Math.round(totalWeight * ROUND_SCALE) / ROUND_SCALE;
     }
 
     @Override

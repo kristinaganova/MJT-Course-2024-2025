@@ -1,7 +1,7 @@
-package bg.sofia.uni.fmi.frauddetector.analyzer;
+package bg.sofia.uni.fmi.mjt.frauddetector.analyzer;
 
-import bg.sofia.uni.fmi.frauddetector.transaction.Channel;
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Channel;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 
 import java.util.List;
 import java.util.Map;

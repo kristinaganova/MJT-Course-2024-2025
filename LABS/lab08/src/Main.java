@@ -1,10 +1,10 @@
-import bg.sofia.uni.fmi.frauddetector.analyzer.TransactionAnalyzer;
-import bg.sofia.uni.fmi.frauddetector.analyzer.TransactionAnalyzerImpl;
-import bg.sofia.uni.fmi.frauddetector.rule.FrequencyRule;
-import bg.sofia.uni.fmi.frauddetector.rule.LocationsRule;
-import bg.sofia.uni.fmi.frauddetector.rule.Rule;
-import bg.sofia.uni.fmi.frauddetector.rule.SmallTransactionsRule;
-import bg.sofia.uni.fmi.frauddetector.rule.ZScoreRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.analyzer.TransactionAnalyzer;
+import bg.sofia.uni.fmi.mjt.frauddetector.analyzer.TransactionAnalyzerImpl;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.FrequencyRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.LocationsRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.Rule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.SmallTransactionsRule;
+import bg.sofia.uni.fmi.mjt.frauddetector.rule.ZScoreRule;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;

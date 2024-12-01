@@ -1,6 +1,6 @@
-package bg.sofia.uni.fmi.frauddetector.rule;
+package bg.sofia.uni.fmi.mjt.frauddetector.rule;
 
-import bg.sofia.uni.fmi.frauddetector.transaction.Transaction;
+import bg.sofia.uni.fmi.mjt.frauddetector.transaction.Transaction;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class ZScoreRule implements Rule {
         return transactions.stream()
                 .mapToDouble(Transaction::transactionAmount)
                 .anyMatch(amount -> {
-                    double zScore = Math.abs((amount - mean) / standardDeviation);
+                    double zScore = Math.abs(amount - mean) / standardDeviation;
                     return zScore > zScoreThreshold;
                 });
     }

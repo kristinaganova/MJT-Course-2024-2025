@@ -14,15 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ParallelSentimentAnalyzerTest {
 
-    private Map<String, SentimentScore> getMockSentimentLexicon() {
+    private Map<String, Integer> getMockSentimentLexicon() {
         return Map.of(
-                "love", SentimentScore.fromScore(3),
-                "hate", SentimentScore.fromScore(-3),
-                "happy", SentimentScore.fromScore(2),
-                "sad", SentimentScore.fromScore(-2),
-                "good", SentimentScore.fromScore(1),
-                "fun", SentimentScore.fromScore(2),
-                "bad", SentimentScore.fromScore(-1)
+                "love", SentimentScore.fromScore(3).getScore(),
+                "hate", SentimentScore.fromScore(-3).getScore(),
+                "happy", SentimentScore.fromScore(2).getScore(),
+                "sad", SentimentScore.fromScore(-2).getScore(),
+                "good", SentimentScore.fromScore(1).getScore(),
+                "fun", SentimentScore.fromScore(2).getScore(),
+                "bad", SentimentScore.fromScore(-1).getScore()
         );
     }
 

@@ -2,6 +2,7 @@ package bg.sofia.uni.fmi.mjt.sentimentnalyzer;
 
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
 
+import java.io.Reader;
 import java.util.Map;
 
 public interface SentimentAnalyzerAPI {

@@ -17,15 +17,15 @@ public record Transaction(String transactionID, String accountID, double transac
         }
 
         int i = 0; //to avoid checkstyle errors
-        String transactionID = parts[i].trim();
-        String accountID = parts[i += 1].trim();
-        double transactionAmount = Double.parseDouble(parts[i += 1].trim());
+        String transactionID = parts[i].strip();
+        String accountID = parts[i += 1].strip();
+        double transactionAmount = Double.parseDouble(parts[i += 1].strip());
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime transactionDate = LocalDateTime.parse(parts[i += 1].trim(), formatter);
+        LocalDateTime transactionDate = LocalDateTime.parse(parts[i += 1].strip(), formatter);
 
-        String location = parts[i += 1].trim();
-        Channel channel = Channel.valueOf(parts[i += 1].trim().toUpperCase());
+        String location = parts[i += 1].strip();
+        Channel channel = Channel.valueOf(parts[i += 1].strip().toUpperCase());
 
         return new Transaction(transactionID, accountID, transactionAmount, transactionDate, location, channel);
     }

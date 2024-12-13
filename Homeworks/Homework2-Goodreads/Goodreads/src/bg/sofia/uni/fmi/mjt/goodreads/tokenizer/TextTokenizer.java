@@ -21,6 +21,10 @@ public class TextTokenizer {
     }
 
     public List<String> tokenize(String input) {
+        if (input.isEmpty() ||  input.isBlank()) {
+            throw new IllegalArgumentException("Empty input");
+        }
+
         input = input.toLowerCase();
         String[] words = input.split("\\W+");
         return Arrays.stream(words)

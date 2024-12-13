@@ -1,7 +1,7 @@
 package bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads;
 
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.SentimentScore;
+import bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
+import bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer.SentimentScore;
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
 
 import java.io.BufferedReader;
@@ -17,13 +17,13 @@ public class Consumer implements Runnable {
     private final Queue<AnalyzerInput> queue;
     private final Map<String, SentimentScore> results;
     private final Set<String> stopWords;
-    private final Map<String, Integer> sentimentLexicon;
+    private final Map<String, SentimentScore> sentimentLexicon;
     private final AtomicBoolean allInputsLoaded;
 
     private static final int MAX_SENTIMENT_SCORE = 5;
 
     public Consumer(Queue<AnalyzerInput> queue, Map<String, SentimentScore> results, Set<String> stopWords,
-                    Map<String, Integer> sentimentLexicon, AtomicBoolean allInputsLoaded) {
+                    Map<String, SentimentScore> sentimentLexicon, AtomicBoolean allInputsLoaded) {
         this.queue = queue;
         this.results = results;
         this.stopWords = stopWords;

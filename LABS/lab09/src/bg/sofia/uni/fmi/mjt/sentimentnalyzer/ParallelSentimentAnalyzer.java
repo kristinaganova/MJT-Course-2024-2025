@@ -1,4 +1,4 @@
-package bg.sofia.uni.fmi.mjt.sentimentnalyzer;
+package bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer;
 
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads.Consumer;
@@ -18,12 +18,12 @@ public class ParallelSentimentAnalyzer implements SentimentAnalyzerAPI {
 
     private final int workersCount;
     private final Set<String> stopWords;
-    private final Map<String, Integer> sentimentLexicon;
+    private final Map<String, SentimentScore> sentimentLexicon;
     private final Queue<AnalyzerInput> inputQueue;
     private final Map<String, SentimentScore> results;
     private final AtomicBoolean allInputsLoaded;
 
-    private void validate(int workersCount, Set<String> stopWords, Map<String, Integer> sentimentLexicon) {
+    private void validate(int workersCount, Set<String> stopWords, Map<String, SentimentScore> sentimentLexicon) {
         if (workersCount < 1) {
             throw new IllegalArgumentException("Number of worker threads must be greater than 0");
         }
@@ -35,7 +35,7 @@ public class ParallelSentimentAnalyzer implements SentimentAnalyzerAPI {
         }
     }
 
-    public ParallelSentimentAnalyzer(int workersCount, Set<String> stopWords, Map<String, Integer> sentimentLexicon) {
+    public ParallelSentimentAnalyzer(int workersCount, Set<String> stopWords, Map<String, SentimentScore> sentimentLexicon) {
         validate(workersCount, stopWords, sentimentLexicon);
         this.workersCount = workersCount;
         this.stopWords = stopWords;

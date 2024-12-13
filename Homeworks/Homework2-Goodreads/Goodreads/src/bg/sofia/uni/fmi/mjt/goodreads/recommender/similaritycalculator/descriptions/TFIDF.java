@@ -16,14 +16,18 @@ public class TFIDF implements SimilarityCalculator {
     private final TextTokenizer tokenizer;
 
     public TFIDF(Set<Book> books, TextTokenizer tokenizer) {
+        validate(books, tokenizer);
+        this.books = books;
+        this.tokenizer = tokenizer;
+    }
+
+    void validate(Set<Book> books, TextTokenizer tokenizer) {
         if (books.isEmpty() || books == null) {
             throw new IllegalArgumentException("Books cannot be empty");
         }
         if (tokenizer == null) {
             throw new IllegalArgumentException("Tokenizer cannot be null");
         }
-        this.books = books;
-        this.tokenizer = tokenizer;
     }
 
     private void validateBook(Book book) {
@@ -123,10 +127,10 @@ public class TFIDF implements SimilarityCalculator {
                     .count();
 
             double idf = Math.log(books.size() / (double) (docCountWithWord + 1));
-            idfMap.put(word, idf);
+            idfMap.put(word, idf >= 0 ? idf : 0.0);
         }
 
         return idfMap;
     }
-    
+
 }

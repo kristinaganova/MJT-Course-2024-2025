@@ -6,104 +6,136 @@ import bg.sofia.uni.fmi.mjt.goodreads.tokenizer.TextTokenizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.StringReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class TFIDFTest {
 
-    private Set<Book> books;
     private TextTokenizer tokenizer;
-    private TFIDF tfidfCalculator;
+    private Set<Book> books;
+    private TFIDF tfidf;
 
     @BeforeEach
     void setUp() {
-        Book book1 = new Book(
-                "1",
-                "Book 1",
-                "Author 1",
-                "This is a test description for book one.",
-                List.of("Fiction", "Thriller"),
-                4.5,
-                1000,
-                "http://book1.url"
-        );
+        tokenizer = mock(TextTokenizer.class);
 
-        Book book2 = new Book(
-                "2",
-                "Book 2",
-                "Author 2",
-                "This is another test description for book two.",
-                List.of("Fiction", "Mystery"),
-                4.0,
-                850,
-                "http://book2.url"
-        );
+        Book book1 = mock(Book.class);
+        Book book2 = mock(Book.class);
 
-        Book book3 = new Book(
-                "3",
-                "Book 3",
-                "Author 3",
-                "Completely different description for book three.",
-                List.of("Non-Fiction"),
-                3.5,
-                200,
-                "http://book3.url"
-        );
+        when(book1.description()).thenReturn("java programming");
+        when(book2.description()).thenReturn("java coffee");
+
+        when(tokenizer.tokenize("java programming"))
+                .thenReturn(List.of("java", "programming"));
+        when(tokenizer.tokenize("java coffee"))
+                .thenReturn(List.of("java", "coffee"));
 
         books = new HashSet<>();
         books.add(book1);
         books.add(book2);
-        books.add(book3);
 
-        tokenizer = new TextTokenizer(new StringReader("the\nis\nfor"));
-
-        tfidfCalculator = new TFIDF(books, tokenizer);
+        tfidf = new TFIDF(books, tokenizer);
     }
 
     @Test
-    void testCalculateSimilarity() {
-        Book book1 = books.iterator().next();
-        Book book2 = books.stream().skip(1).findFirst().orElseThrow();
-
-        double similarity = tfidfCalculator.calculateSimilarity(book1, book2);
-
-        assertNotNull(similarity, "Similarity should not be null");
-        assertTrue(similarity >= 0.0 && similarity <= 1.0, "Similarity should be between 0 and 1");
+    void testConstructorWithEmptyBooksShouldThrowException() {
+        assertThrows(IllegalArgumentException.class, () -> new TFIDF(new HashSet<>(), tokenizer));
     }
 
     @Test
-    void testCalculateSimilarityZero() {
-        Book book1 = books.iterator().next();
-        Book book3 = books.stream().skip(2).findFirst().orElseThrow();
+    void testCalculateSimilarityWithEmptyDescriptionShouldReturnZero() {
+        Book book1 = mock(Book.class);
+        Book book2 = mock(Book.class);
 
-        double similarity = tfidfCalculator.calculateSimilarity(book1, book3);
+        when(book1.description()).thenReturn("");
+        when(book2.description()).thenReturn("Some valid description");
+        when(tokenizer.tokenize("")).thenReturn(List.of()); // Няма думи за първата книга
+        when(tokenizer.tokenize("Some valid description")).thenReturn(List.of("some", "valid", "description"));
 
-        assertNotNull(similarity, "Similarity should not be null");
-        assertEquals(0.0, similarity, "Similarity should be 0 for completely different descriptions");
+        double similarity = tfidf.calculateSimilarity(book1, book2);
+
+        assertEquals(0.0, similarity, "Expected similarity to be 0.0 when one book has no valid words");
     }
 
     @Test
-    void testComputeTF() {
-        Book book1 = books.iterator().next();
-        Map<String, Double> tf = tfidfCalculator.computeTF(book1);
-
-        assertNotNull(tf, "TF map should not be null");
-        assertTrue(tf.containsKey("test"), "TF map should contain 'test'");
-        assertTrue(tf.containsKey("book"), "TF map should contain 'book'");
+    void testConstructorWithNullTokenizerShouldThrowException() {
+        assertThrows(IllegalArgumentException.class, () -> new TFIDF(books, null));
     }
 
     @Test
-    void testComputeIDF() {
-        Book book1 = books.iterator().next();
-        Map<String, Double> idf = tfidfCalculator.computeIDF(book1);
+    void testCalculateSimilarityWithNullBooksShouldThrowException() {
+        Book book1 = mock(Book.class);
+        assertThrows(IllegalArgumentException.class, () -> tfidf.calculateSimilarity(book1, null));
+        assertThrows(IllegalArgumentException.class, () -> tfidf.calculateSimilarity(null, book1));
+    }
 
-        assertNotNull(idf, "IDF map should not be null");
-        assertTrue(idf.containsKey("test"), "IDF map should contain 'test'");
-        assertTrue(idf.containsKey("book"), "IDF map should contain 'book'");
+    @Test
+    void testCalculateSimilarityShouldReturnCorrectValue() {
+        Book book1 = mock(Book.class);
+        Book book2 = mock(Book.class);
+
+        when(book1.description()).thenReturn("java programming language");
+        when(book2.description()).thenReturn("java coffee beans");
+
+        when(tokenizer.tokenize("java programming language"))
+                .thenReturn(List.of("java", "programming", "language"));
+        when(tokenizer.tokenize("java coffee beans"))
+                .thenReturn(List.of("java", "coffee", "beans"));
+
+        double similarity = tfidf.calculateSimilarity(book1, book2);
+
+        assertTrue(similarity >= 0.0 && similarity <= 1.0);
+    }
+
+    @Test
+    void testComputeTFShouldReturnCorrectTFValues() {
+        Book book = mock(Book.class);
+        when(book.description()).thenReturn("java programming java");
+
+        when(tokenizer.tokenize("java programming java"))
+                .thenReturn(List.of("java", "programming", "java"));
+
+        Map<String, Double> tf = tfidf.computeTF(book);
+
+        assertEquals(2.0 / 3.0, tf.get("java"));
+        assertEquals(1.0 / 3.0, tf.get("programming"));
+    }
+
+    @Test
+    void testComputeIDFShouldReturnCorrectIDFValues() {
+        // Retrieve one of the books from the set
+        Book book = books.stream().filter(b -> b.description().equals("java programming")).findFirst().orElseThrow();
+
+        Map<String, Double> idf = tfidf.computeIDF(book);
+
+        // Total books = 2
+        // "java" appears in both books
+        double expectedIdfJava = Math.log(2.0 / (2 + 1)); // +1 in the denominator
+        // "programming" appears in only one book
+        double expectedIdfProgramming = Math.log(2.0 / (1 + 1));
+
+        assertEquals(expectedIdfJava >= 0 ? expectedIdfJava: 0.0 , idf.get("java"), 1e-6, "IDF for 'java' is incorrect");
+        assertEquals(expectedIdfProgramming, idf.get("programming"), 1e-6, "IDF for 'programming' is incorrect");
+    }
+
+    @Test
+    void testComputeTFIDFShouldReturnNonEmptyMap() {
+        Book book = mock(Book.class);
+        when(book.description()).thenReturn("java programming");
+
+        when(tokenizer.tokenize("java programming"))
+                .thenReturn(List.of("java", "programming"));
+
+        Map<String, Double> tfidfMap = tfidf.computeTFIDF(book);
+
+        assertFalse(tfidfMap.isEmpty());
     }
 }

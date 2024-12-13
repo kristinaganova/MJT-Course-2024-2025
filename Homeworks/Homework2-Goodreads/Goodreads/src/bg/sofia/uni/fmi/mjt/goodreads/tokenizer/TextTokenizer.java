@@ -9,20 +9,29 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TextTokenizer {
-    
+
     private final Set<String> stopwords;
 
     public TextTokenizer(Reader stopwordsReader) {
+        if (stopwordsReader == null) {
+            throw new IllegalArgumentException("Stopwords reader cannot be null");
+        }
         try (var br = new BufferedReader(stopwordsReader)) {
-            stopwords = br.lines().collect(Collectors.toSet());
+            stopwords = br.lines()
+                    .map(String::strip)
+                    .filter(word -> !word.isEmpty())
+                    .collect(Collectors.toSet());
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Could not load dataset", ex);
+            throw new IllegalArgumentException("Could not load stopwords dataset", ex);
         }
     }
 
     public List<String> tokenize(String input) {
-        if (input.isEmpty() ||  input.isBlank()) {
-            throw new IllegalArgumentException("Empty input");
+        if (input == null) {
+            throw new IllegalArgumentException("Input cannot be null");
+        }
+        if (input.isEmpty() || input.isBlank()) {
+            throw new IllegalArgumentException("Input cannot be empty or blank");
         }
 
         input = input.toLowerCase();
@@ -36,5 +45,4 @@ public class TextTokenizer {
     public Set<String> stopwords() {
         return stopwords;
     }
-
 }

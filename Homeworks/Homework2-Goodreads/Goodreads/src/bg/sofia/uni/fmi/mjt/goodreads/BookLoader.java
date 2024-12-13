@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 public class BookLoader {
 
     public static Set<Book> load(Reader reader) {
+        if (reader == null) {
+            throw new IllegalArgumentException("reader is null");
+        }
 
         try (CSVReader csvReader = new CSVReader(reader)) {
             return csvReader.readAll().stream()

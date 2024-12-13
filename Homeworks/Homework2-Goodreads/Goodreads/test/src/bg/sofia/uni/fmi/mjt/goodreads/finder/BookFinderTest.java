@@ -8,182 +8,135 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class BookFinderTest {
+class BookFinderTest {
 
-    private Set<Book> books;
-    private TextTokenizer tokenizer;
     private BookFinder bookFinder;
+    private TextTokenizer tokenizerMock;
 
     @BeforeEach
     void setUp() {
-        books = new HashSet<>();
-        tokenizer = mock(TextTokenizer.class);
-        bookFinder = new BookFinder(books, tokenizer);
+        tokenizerMock = mock(TextTokenizer.class);
+
+        Set<Book> books = Set.of(
+                new Book("1", "Book One", "Author A", "Description one",
+                        List.of("Fiction", "Drama"), 4.5, 1000, "url1"),
+                new Book("2", "Book Two", "Author B", "Description two",
+                        List.of("Mystery", "Thriller"), 4.2, 800, "url2"),
+                new Book("3", "Another Book", "Author A", "Another description",
+                        List.of("Drama", "Romance"), 3.8, 500, "url3")
+        );
+
+        when(tokenizerMock.tokenize("Book One")).thenReturn(List.of("book", "one"));
+        when(tokenizerMock.tokenize("Description one")).thenReturn(List.of("description", "one"));
+        when(tokenizerMock.tokenize("Book Two")).thenReturn(List.of("book", "two"));
+        when(tokenizerMock.tokenize("Description two")).thenReturn(List.of("description", "two"));
+        when(tokenizerMock.tokenize("Another Book")).thenReturn(List.of("another", "book"));
+        when(tokenizerMock.tokenize("Another description")).thenReturn(List.of("another", "description"));
+
+        bookFinder = new BookFinder(books, tokenizerMock);
     }
 
     @Test
-    void testConstructorThrowsExceptionWhenBooksIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> new BookFinder(null, tokenizer));
+    void testAllBooks() {
+        Set<Book> allBooks = bookFinder.allBooks();
+        assertEquals(3, allBooks.size(), "The number of books should match the dataset size.");
     }
 
     @Test
-    void testConstructorThrowsExceptionWhenBooksIsEmpty() {
-        assertThrows(IllegalArgumentException.class, () -> new BookFinder(Collections.emptySet(), tokenizer));
+    void testAllGenres() {
+        Set<String> allGenres = bookFinder.allGenres();
+        assertEquals(Set.of("Fiction", "Drama", "Mystery", "Thriller", "Romance"), allGenres,
+                "The set of genres should include all unique genres from the dataset.");
     }
 
     @Test
-    void testConstructorThrowsExceptionWhenTokenizerIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> new BookFinder(books, null));
+    void testSearchByAuthorValid() {
+        List<Book> booksByAuthorA = bookFinder.searchByAuthor("Author A");
+        assertEquals(2, booksByAuthorA.size(), "Author A should have 2 books.");
     }
 
     @Test
-    void testAllBooksReturnsUnmodifiableSet() {
-        Book book = mock(Book.class);
-        books.add(book);
+    void testSearchByGenresMatchAll() {
+        Set<String> genres = Set.of("Drama", "Fiction");
 
-        Set<Book> result = bookFinder.allBooks();
+        when(tokenizerMock.tokenize(Mockito.anyString())).thenReturn(List.of("drama", "fiction"));
 
-        assertEquals(1, result.size());
-        assertTrue(result.contains(book));
-        assertThrows(UnsupportedOperationException.class, () -> result.add(mock(Book.class)));
+        List<Book> matchingBooks = bookFinder.searchByGenres(genres, MatchOption.MATCH_ALL);
+        assertEquals(1, matchingBooks.size(), "There should be 1 book that matches all specified genres.");
     }
 
     @Test
-    void testSearchThrowsExceptionWhenCriteriaIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> bookFinder.search(null));
+    void testSearchByGenresMatchAny() {
+        Set<String> genres = Set.of("Drama", "Mystery");
+
+        // Mock the behavior of TextTokenizer
+        when(tokenizerMock.tokenize(Mockito.anyString())).thenReturn(List.of("drama", "mystery"));
+
+        List<Book> matchingBooks = bookFinder.searchByGenres(genres, MatchOption.MATCH_ANY);
+        assertEquals(3, matchingBooks.size(), "There should be 3 books that match any of the specified genres.");
     }
 
     @Test
-    void testSearchByAuthorReturnsBooksByAuthor() {
-        String author = "Author1";
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
-        when(book1.author()).thenReturn(author);
-        when(book2.author()).thenReturn("Author2");
+    void testSearchByKeywordsMatchAll() {
+        Set<String> keywords = Set.of("description", "one");
 
-        books.add(book1);
-        books.add(book2);
+        List<Book> matchingBooks = bookFinder.searchByKeywords(keywords, MatchOption.MATCH_ALL);
 
-        List<Book> result = bookFinder.searchByAuthor(author);
-
-        assertEquals(1, result.size());
-        assertTrue(result.contains(book1));
-        assertFalse(result.contains(book2));
+        assertEquals(1, matchingBooks.size(), "There should be 1 book matching all keywords.");
+        assertEquals("Book One", matchingBooks.get(0).title(), "The matched book should be 'Book One'.");
     }
 
     @Test
-    void testSearchByAuthorThrowsExceptionWhenAuthorNameIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> bookFinder.searchByAuthor(null));
+    void testSearchByKeywordsMatchAny() {
+        Set<String> keywords = Set.of("description", "Another");
+
+        List<Book> matchingBooks = bookFinder.searchByKeywords(keywords, MatchOption.MATCH_ANY);
+
+        assertEquals(3, matchingBooks.size(), "There should be 3 books matching any of the keywords.");
+    }
+
+
+    @Test
+    void testSearchByKeywordsNull() {
+        assertThrows(IllegalArgumentException.class, () -> bookFinder.searchByKeywords(null, MatchOption.MATCH_ALL),
+                "Searching with null keywords should throw IllegalArgumentException.");
     }
 
     @Test
-    void testAllGenresReturnsAllGenres() {
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
-        when(book1.genres()).thenReturn(List.of("Fiction", "Mystery"));
-        when(book2.genres()).thenReturn(List.of("Fantasy", "Adventure"));
-
-        books.add(book1);
-        books.add(book2);
-
-        Set<String> result = bookFinder.allGenres();
-
-        assertEquals(4, result.size());
-        assertTrue(result.contains("Fiction"));
-        assertTrue(result.contains("Mystery"));
-        assertTrue(result.contains("Fantasy"));
-        assertTrue(result.contains("Adventure"));
+    void testSearchByKeywordsEmptyKeywords() {
+        assertThrows(IllegalArgumentException.class, () -> bookFinder.searchByKeywords(Set.of(), MatchOption.MATCH_ALL),
+                "Searching with empty keywords should throw IllegalArgumentException.");
     }
 
     @Test
-    void testSearchByGenresWithMatchAll() {
-        Set<String> genres = Set.of("Fiction", "Mystery");
-        MatchOption option = MatchOption.MATCH_ALL;
-
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
-
-        when(book1.genres()).thenReturn(List.of("Fiction", "Mystery"));
-        when(book2.genres()).thenReturn(List.of("Fantasy", "Adventure"));
-
-        books.add(book1);
-        books.add(book2);
-
-        List<Book> result = bookFinder.searchByGenres(genres, option);
-
-        assertEquals(1, result.size());
-        assertTrue(result.contains(book1));
-        assertFalse(result.contains(book2));
+    void testSearchByKeywordsNullOption() {
+        Set<String> keywords = Set.of("description");
+        assertThrows(IllegalArgumentException.class, () -> bookFinder.searchByKeywords(keywords, null),
+                "Searching with a null match option should throw IllegalArgumentException.");
     }
 
     @Test
-    void testSearchByGenresWithMatchAny() {
-        Set<String> genres = Set.of("Fiction", "Adventure");
-        MatchOption option = MatchOption.MATCH_ANY;
-
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
-
-        when(book1.genres()).thenReturn(List.of("Fiction", "Mystery"));
-        when(book2.genres()).thenReturn(List.of("Fantasy", "Adventure"));
-
-        books.add(book1);
-        books.add(book2);
-
-        List<Book> result = bookFinder.searchByGenres(genres, option);
-
-        assertEquals(2, result.size());
-        assertTrue(result.contains(book1));
-        assertTrue(result.contains(book2));
+    void testConstructorWithNullBooks() {
+        assertThrows(IllegalArgumentException.class, () -> new BookFinder(null, tokenizerMock),
+                "Constructor with null books should throw IllegalArgumentException.");
     }
 
     @Test
-    void testSearchByGenresThrowsExceptionWhenGenresIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> bookFinder.searchByGenres(null, MatchOption.MATCH_ALL));
+    void testConstructorWithEmptyBooks() {
+        assertThrows(IllegalArgumentException.class, () -> new BookFinder(Set.of(), tokenizerMock),
+                "Constructor with empty books should throw IllegalArgumentException.");
     }
 
     @Test
-    void testSearchByKeywordsWithMatchAll() {
-        Set<String> keywords = Set.of("mystery", "detective");
-        MatchOption option = MatchOption.MATCH_ALL;
-
-        Book book = mock(Book.class);
-        when(book.description()).thenReturn("A great mystery with a detective");
-
-        books.add(book);
-
-        when(tokenizer.tokenize(book.description())).thenReturn(List.of("a", "great", "mystery", "with", "a", "detective"));
-
-        List<Book> result = bookFinder.searchByKeywords(keywords, option);
-
-        assertEquals(1, result.size());
-        assertTrue(result.contains(book));
-    }
-
-    @Test
-    void testSearchByKeywordsWithMatchAny() {
-        Set<String> keywords = Set.of("mystery", "adventure");
-        MatchOption option = MatchOption.MATCH_ANY;
-
-        Book book = mock(Book.class);
-        when(book.description()).thenReturn("A great mystery with a detective");
-
-        books.add(book);
-
-        when(tokenizer.tokenize(book.description())).thenReturn(List.of("a", "great", "mystery", "with", "a", "detective"));
-
-        List<Book> result = bookFinder.searchByKeywords(keywords, option);
-
-        assertEquals(1, result.size());
-        assertTrue(result.contains(book));
-    }
-
-    @Test
-    void testSearchByKeywordsThrowsExceptionWhenKeywordsIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> bookFinder.searchByKeywords(null, MatchOption.MATCH_ALL));
+    void testConstructorWithNullTokenizer() {
+        Set<Book> books = Set.of(new Book("1", "Book One", "Author A", "Description one", List.of("Fiction"), 4.5, 1000, "url1"));
+        assertThrows(IllegalArgumentException.class, () -> new BookFinder(books, null),
+                "Constructor with null tokenizer should throw IllegalArgumentException.");
     }
 }

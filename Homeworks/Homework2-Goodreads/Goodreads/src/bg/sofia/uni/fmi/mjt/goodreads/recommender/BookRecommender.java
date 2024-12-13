@@ -8,8 +8,9 @@ import java.util.Set;
 
 public class BookRecommender implements BookRecommenderAPI {
 
-    public BookRecommender(Set<Book> initialBooks, SimilarityCalculator calculator) {}
+    public BookRecommender(Set<Book> initialBooks, SimilarityCalculator calculator) {
 
+    }
 
     @Override
     public Map<Book, Double> recommendBooks(Book origin, int maxN) {

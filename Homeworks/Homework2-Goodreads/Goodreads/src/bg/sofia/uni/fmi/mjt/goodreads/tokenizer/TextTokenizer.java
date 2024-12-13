@@ -3,6 +3,7 @@ package bg.sofia.uni.fmi.mjt.goodreads.tokenizer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,7 +21,12 @@ public class TextTokenizer {
     }
 
     public List<String> tokenize(String input) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        input = input.toLowerCase();
+        String[] words = input.split("\\W+");
+        return Arrays.stream(words)
+                .filter(word -> !stopwords.contains(word))
+                .filter(word -> !word.isEmpty())
+                .collect(Collectors.toList());
     }
 
     public Set<String> stopwords() {

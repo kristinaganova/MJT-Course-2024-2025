@@ -4,11 +4,14 @@
     <checkstyleVersion>10.19.0</checkstyleVersion>
     <scanScope>JavaOnly</scanScope>
     <option name="thirdPartyClasspath" />
-    <option name="activeLocationIds" />
+    <option name="activeLocationIds">
+      <option value="f1532ea4-6aa3-4969-9498-947a05b4394b" />
+    </option>
     <option name="locations">
       <list>
         <ConfigurationLocation id="bundled-sun-checks" type="BUNDLED" scope="All" description="Sun Checks">(bundled)</ConfigurationLocation>
         <ConfigurationLocation id="bundled-google-checks" type="BUNDLED" scope="All" description="Google Checks">(bundled)</ConfigurationLocation>
+        <ConfigurationLocation id="f1532ea4-6aa3-4969-9498-947a05b4394b" type="HTTP_URL" scope="All" description="MJT">https://raw.githubusercontent.com/fmi/java-course/master/docs/02-code-analysis-tools/checkstyle/checkstyle.xml</ConfigurationLocation>
       </list>
     </option>
   </component>

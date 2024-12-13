@@ -8,7 +8,9 @@ import java.util.Set;
 
 public class BookFinder implements BookFinderAPI {
 
-    public BookFinder(Set<Book> books, TextTokenizer tokenizer) {}
+    public BookFinder(Set<Book> books, TextTokenizer tokenizer) {
+
+    }
 
     public Set<Book> allBooks() {
         throw new UnsupportedOperationException("Not yet implemented");

@@ -1,4 +1,4 @@
-package bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer;
+package bg.sofia.uni.fmi.mjt.sentimentnalyzer;
 
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads.Consumer;

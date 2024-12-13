@@ -1,6 +1,6 @@
 package bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads;
 
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
+import bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
 
 import java.util.Queue;
 

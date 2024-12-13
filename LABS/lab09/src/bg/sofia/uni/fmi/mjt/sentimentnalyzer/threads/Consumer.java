@@ -1,7 +1,7 @@
 package bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads;
 
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.src.bg.sofia.uni.fmi.mjt.sentimentnalyzer.SentimentScore;
+import bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
+import bg.sofia.uni.fmi.mjt.sentimentnalyzer.SentimentScore;
 import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
 
 import java.io.BufferedReader;
@@ -95,7 +95,7 @@ public class Consumer implements Runnable {
         int score = 0;
         for (String word : words) {
             if (!stopWords.contains(word)) {
-                score += sentimentLexicon.getOrDefault(word, 0);
+                score += sentimentLexicon.getOrDefault(word, SentimentScore.fromScore(0)).getScore();
             }
         }
         return score;

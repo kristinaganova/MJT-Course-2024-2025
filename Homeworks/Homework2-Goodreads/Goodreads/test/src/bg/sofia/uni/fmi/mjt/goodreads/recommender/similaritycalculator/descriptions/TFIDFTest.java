@@ -1,7 +1,7 @@
 package src.bg.sofia.uni.fmi.mjt.goodreads.recommender.similaritycalculator.descriptions;
 
 import bg.sofia.uni.fmi.mjt.goodreads.book.Book;
-import bg.sofia.uni.fmi.mjt.goodreads.recommender.similaritycalculator.descriptions.TFIDF;
+import bg.sofia.uni.fmi.mjt.goodreads.recommender.similaritycalculator.descriptions.TFIDFSimilarityCalculator;
 import bg.sofia.uni.fmi.mjt.goodreads.tokenizer.TextTokenizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class TFIDFTest {
 
     private TextTokenizer tokenizer;
     private Set<Book> books;
-    private TFIDF tfidf;
+    private TFIDFSimilarityCalculator tfidf;
 
     @BeforeEach
     void setUp() {
@@ -42,12 +42,12 @@ class TFIDFTest {
         books.add(book1);
         books.add(book2);
 
-        tfidf = new TFIDF(books, tokenizer);
+        tfidf = new TFIDFSimilarityCalculator(books, tokenizer);
     }
 
     @Test
     void testConstructorWithEmptyBooksShouldThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> new TFIDF(new HashSet<>(), tokenizer));
+        assertThrows(IllegalArgumentException.class, () -> new TFIDFSimilarityCalculator(new HashSet<>(), tokenizer));
     }
 
     @Test
@@ -57,7 +57,7 @@ class TFIDFTest {
 
         when(book1.description()).thenReturn("");
         when(book2.description()).thenReturn("Some valid description");
-        when(tokenizer.tokenize("")).thenReturn(List.of()); // Няма думи за първата книга
+        when(tokenizer.tokenize("")).thenReturn(List.of()); // No words for the first book
         when(tokenizer.tokenize("Some valid description")).thenReturn(List.of("some", "valid", "description"));
 
         double similarity = tfidf.calculateSimilarity(book1, book2);
@@ -67,7 +67,7 @@ class TFIDFTest {
 
     @Test
     void testConstructorWithNullTokenizerShouldThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> new TFIDF(books, null));
+        assertThrows(IllegalArgumentException.class, () -> new TFIDFSimilarityCalculator(books, null));
     }
 
     @Test
@@ -111,15 +111,11 @@ class TFIDFTest {
 
     @Test
     void testComputeIDFShouldReturnCorrectIDFValues() {
-        // Retrieve one of the books from the set
         Book book = books.stream().filter(b -> b.description().equals("java programming")).findFirst().orElseThrow();
 
         Map<String, Double> idf = tfidf.computeIDF(book);
 
-        // Total books = 2
-        // "java" appears in both books
-        double expectedIdfJava = Math.log(2.0 / (2 + 1)); // +1 in the denominator
-        // "programming" appears in only one book
+        double expectedIdfJava = Math.log(2.0 / (2 + 1));
         double expectedIdfProgramming = Math.log(2.0 / (1 + 1));
 
         assertEquals(expectedIdfJava >= 0 ? expectedIdfJava: 0.0 , idf.get("java"), 1e-6, "IDF for 'java' is incorrect");

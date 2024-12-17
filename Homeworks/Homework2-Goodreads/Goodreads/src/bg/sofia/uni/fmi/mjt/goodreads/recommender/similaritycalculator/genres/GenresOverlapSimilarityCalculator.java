@@ -3,22 +3,31 @@ package bg.sofia.uni.fmi.mjt.goodreads.recommender.similaritycalculator.genres;
 import bg.sofia.uni.fmi.mjt.goodreads.book.Book;
 import bg.sofia.uni.fmi.mjt.goodreads.recommender.similaritycalculator.SimilarityCalculator;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class GenresOverlapSimilarityCalculator implements SimilarityCalculator {
 
     @Override
     public double calculateSimilarity(Book first, Book second) {
-        Set<String> genresFirst = new HashSet<>(first.genres());
-        Set<String> genresSecond = new HashSet<>(second.genres());
+        if (first == null || second == null) {
+            throw new IllegalArgumentException("Books cannot be null");
+        }
+        if (first.genres() == null || second.genres() == null) {
+            return 0.0;
+        }
 
-        Set<String> intersection = new HashSet<>(genresFirst);
-        intersection.retainAll(genresSecond);
+        Set<String> genresFirst = Set.copyOf(first.genres());
+        Set<String> genresSecond = Set.copyOf(second.genres());
 
-        int minSize = Math.min(first.genres().size(), second.genres().size());
+        if (genresFirst.isEmpty() || genresSecond.isEmpty()) {
+            return 0.0;
+        }
 
-        return minSize == 0 ? 0.0 : (double) intersection.size() / minSize;
+        long intersectionSize = genresFirst.stream()
+                .filter(genresSecond::contains)
+                .count();
+
+        int minSize = Math.min(genresFirst.size(), genresSecond.size());
+        return (double) intersectionSize / minSize;
     }
-    
 }

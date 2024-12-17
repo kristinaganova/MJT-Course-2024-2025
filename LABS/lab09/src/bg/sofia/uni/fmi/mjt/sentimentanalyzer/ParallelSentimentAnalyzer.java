@@ -1,8 +1,7 @@
-package bg.sofia.uni.fmi.mjt.sentimentnalyzer;
+package bg.sofia.uni.fmi.mjt.sentimentanalyzer;
 
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads.Consumer;
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads.Producer;
+import bg.sofia.uni.fmi.mjt.sentimentanalyzer.exceptions.SentimentAnalysisException;
+import bg.sofia.uni.fmi.mjt.sentimentanalyzer.threads.Consumer;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -35,7 +34,8 @@ public class ParallelSentimentAnalyzer implements SentimentAnalyzerAPI {
         }
     }
 
-    public ParallelSentimentAnalyzer(int workersCount, Set<String> stopWords, Map<String, SentimentScore> sentimentLexicon) {
+    public ParallelSentimentAnalyzer(int workersCount, Set<String> stopWords,
+                                     Map<String, SentimentScore> sentimentLexicon) {
         validate(workersCount, stopWords, sentimentLexicon);
         this.workersCount = workersCount;
         this.stopWords = stopWords;
@@ -46,14 +46,10 @@ public class ParallelSentimentAnalyzer implements SentimentAnalyzerAPI {
     }
 
     private void validateInput(AnalyzerInput... input) {
-        Set<String> uniqueIDs = new HashSet<>();
+        Set<String> seenIDs = new HashSet<>();
         for (AnalyzerInput analyzerInput : input) {
-            if (analyzerInput != null) {
-                if (!uniqueIDs.add(analyzerInput.inputID())) {
-                    throw new IllegalArgumentException("Duplicate input ID detected: " + analyzerInput.inputID());
-                }
-            } else {
-                throw new IllegalArgumentException("Input ID is null!");
+            if (analyzerInput == null || !seenIDs.add(analyzerInput.inputID())) {
+                throw new IllegalArgumentException("Invalid or duplicate input ID: " + analyzerInput.inputID());
             }
         }
     }
@@ -61,7 +57,12 @@ public class ParallelSentimentAnalyzer implements SentimentAnalyzerAPI {
     private List<Thread> startProducers(AnalyzerInput... input) {
         List<Thread> producers = new ArrayList<>();
         for (AnalyzerInput analyzerInput : input) {
-            Thread producer = new Thread(new Producer(analyzerInput, inputQueue));
+            Thread producer = new Thread(() -> {
+                synchronized (inputQueue) {
+                    inputQueue.offer(analyzerInput);
+                    inputQueue.notifyAll();
+                }
+            });
             producers.add(producer);
             producer.start();
         }
@@ -83,25 +84,21 @@ public class ParallelSentimentAnalyzer implements SentimentAnalyzerAPI {
     @Override
     public Map<String, SentimentScore> analyze(AnalyzerInput... input) {
         validateInput(input);
-        addInputsToQueue(input);
 
-        List<Thread> producers = startProducers();
+        List<Thread> producers = startProducers(input);
         List<Thread> consumers = startConsumers();
 
-        //waitForThreads(producers, "Producer"); not sure if we should wait
+        waitForThreads(producers, "Producer");
+
         allInputsLoaded.set(true);
+
+        synchronized (inputQueue) {
+            inputQueue.notifyAll();
+        }
+
         waitForThreads(consumers, "Consumer");
 
         return results;
-    }
-
-    private void addInputsToQueue(AnalyzerInput... input) {
-        for (AnalyzerInput analyzerInput : input) {
-            synchronized (inputQueue) {
-                inputQueue.offer(analyzerInput);
-                inputQueue.notifyAll();
-            }
-        }
     }
 
     private void waitForThreads(List<Thread> threads, String threadType) {

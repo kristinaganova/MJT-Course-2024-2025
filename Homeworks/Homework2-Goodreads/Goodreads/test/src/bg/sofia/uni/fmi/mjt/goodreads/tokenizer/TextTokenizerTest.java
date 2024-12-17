@@ -39,8 +39,10 @@ class TextTokenizerTest {
         var stopwordsReader = new StringReader("the\nis\nand");
         var tokenizer = new TextTokenizer(stopwordsReader);
 
-        assertThrows(IllegalArgumentException.class, () -> tokenizer.tokenize(""),
-                "Expected IllegalArgumentException for empty input");
+        String input = "";
+        List<String> result = tokenizer.tokenize(input);
+
+        assertTrue(result.isEmpty(), "Expected empty list for empty input");
     }
 
     @Test
@@ -48,8 +50,10 @@ class TextTokenizerTest {
         var stopwordsReader = new StringReader("the\nis\nand");
         var tokenizer = new TextTokenizer(stopwordsReader);
 
-        assertThrows(IllegalArgumentException.class, () -> tokenizer.tokenize("    "),
-                "Expected IllegalArgumentException for blank input");
+        String input = "    ";
+        List<String> result = tokenizer.tokenize(input);
+
+        assertTrue(result.isEmpty(), "Expected empty list for blank input");
     }
 
     @Test

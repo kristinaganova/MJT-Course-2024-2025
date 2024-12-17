@@ -1,8 +1,8 @@
-package bg.sofia.uni.fmi.mjt.sentimentnalyzer.threads;
+package bg.sofia.uni.fmi.mjt.sentimentanalyzer.threads;
 
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.AnalyzerInput;
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.SentimentScore;
-import bg.sofia.uni.fmi.mjt.sentimentnalyzer.exceptions.SentimentAnalysisException;
+import bg.sofia.uni.fmi.mjt.sentimentanalyzer.AnalyzerInput;
+import bg.sofia.uni.fmi.mjt.sentimentanalyzer.SentimentScore;
+import bg.sofia.uni.fmi.mjt.sentimentanalyzer.exceptions.SentimentAnalysisException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,10 +38,11 @@ public class Consumer implements Runnable {
             if (input == null) {
                 return;
             }
-
             processInput(input);
         }
     }
+
+    private static final int MAX_WAIT = 1000;
 
     private AnalyzerInput getNextInput() {
         synchronized (queue) {
@@ -50,7 +51,10 @@ public class Consumer implements Runnable {
                     return null;
                 }
                 try {
-                    queue.wait();
+                    queue.wait(MAX_WAIT);
+                    if (queue.isEmpty() && allInputsLoaded.get()) {
+                        return null;
+                    }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new SentimentAnalysisException("Consumer thread interrupted", e);
@@ -67,7 +71,9 @@ public class Consumer implements Runnable {
             SentimentScore sentiment = SentimentScore.fromScore(
                     Math.min(MAX_SENTIMENT_SCORE, Math.max(-MAX_SENTIMENT_SCORE, sentimentScore))
             );
-            results.put(input.inputID(), sentiment);
+            synchronized (results) {
+                results.put(input.inputID(), sentiment);
+            }
         } catch (IOException e) {
             throw new SentimentAnalysisException("Error processing input: " + input.inputID(), e);
         }

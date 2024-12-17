@@ -10,34 +10,44 @@ public class CompositeSimilarityCalculator implements SimilarityCalculator {
     private final Map<SimilarityCalculator, Double> similarityCalculatorMap;
 
     public CompositeSimilarityCalculator(Map<SimilarityCalculator, Double> similarityCalculatorMap) {
-        if (similarityCalculatorMap == null || similarityCalculatorMap.isEmpty()) {
-            throw new IllegalArgumentException("Similarity calculator map cannot be null or empty");
-        }
-        this.similarityCalculatorMap = similarityCalculatorMap;
+        validateNonNullOrEmpty(similarityCalculatorMap);
+        validateWeights(similarityCalculatorMap);
+        this.similarityCalculatorMap = Map.copyOf(similarityCalculatorMap);
     }
 
     @Override
     public double calculateSimilarity(Book first, Book second) {
+        validateBooks(first, second);
+
         double weightedSum = 0.0;
         double totalWeight = 0.0;
 
         for (Map.Entry<SimilarityCalculator, Double> entry : similarityCalculatorMap.entrySet()) {
-            SimilarityCalculator calculator = entry.getKey();
             double weight = entry.getValue();
+            double similarity = entry.getKey().calculateSimilarity(first, second);
 
-            if (weight < 0) {
-                throw new IllegalArgumentException("Weight cannot be negative");
-            }
-
-            double similarity = calculator.calculateSimilarity(first, second);
             weightedSum += similarity * weight;
             totalWeight += weight;
         }
 
-        if (totalWeight == 0) {
-            return 0.0;
-        }
+        return totalWeight == 0 ? 0.0 : weightedSum / totalWeight;
+    }
 
-        return weightedSum / totalWeight;
+    private void validateNonNullOrEmpty(Map<SimilarityCalculator, Double> map) {
+        if (map == null || map.isEmpty()) {
+            throw new IllegalArgumentException("Similarity calculator map cannot be null or empty");
+        }
+    }
+
+    private void validateWeights(Map<SimilarityCalculator, Double> map) {
+        if (map.values().stream().anyMatch(weight -> weight < 0)) {
+            throw new IllegalArgumentException("Weights cannot be negative");
+        }
+    }
+
+    private void validateBooks(Book first, Book second) {
+        if (first == null || second == null) {
+            throw new IllegalArgumentException("Books cannot be null");
+        }
     }
 }

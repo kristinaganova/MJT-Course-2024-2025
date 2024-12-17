@@ -41,9 +41,7 @@ class CompositeSimilarityCalculatorTest {
     void testCalculateSimilarityWithNegativeWeightShouldThrowException() {
         Map<SimilarityCalculator, Double> calculatorMap = Map.of(calculator1, -1.0);
 
-        CompositeSimilarityCalculator composite = new CompositeSimilarityCalculator(calculatorMap);
-
-        assertThrows(IllegalArgumentException.class, () -> composite.calculateSimilarity(book1, book2));
+        assertThrows(IllegalArgumentException.class, () -> new CompositeSimilarityCalculator(calculatorMap));
     }
 
     @Test

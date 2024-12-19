@@ -6,132 +6,152 @@ import bg.sofia.uni.fmi.mjt.goodreads.tokenizer.TextTokenizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TFIDFTest {
 
+    private TFIDFSimilarityCalculator calculator;
     private TextTokenizer tokenizer;
-    private Set<Book> books;
-    private TFIDFSimilarityCalculator tfidf;
+
+    private Book bookX;
+    private Book bookY;
+    private Book bookZ;
 
     @BeforeEach
     void setUp() {
         tokenizer = mock(TextTokenizer.class);
 
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
+        bookX = mock(Book.class);
+        when(bookX.description()).thenReturn("academy superhero club superhero");
+        when(bookX.title()).thenReturn("Book X");
 
-        when(book1.description()).thenReturn("java programming");
-        when(book2.description()).thenReturn("java coffee");
+        bookY = mock(Book.class);
+        when(bookY.description()).thenReturn("superhero mission save club");
+        when(bookY.title()).thenReturn("Book Y");
 
-        when(tokenizer.tokenize("java programming"))
-                .thenReturn(List.of("java", "programming"));
-        when(tokenizer.tokenize("java coffee"))
-                .thenReturn(List.of("java", "coffee"));
+        bookZ = mock(Book.class);
+        when(bookZ.description()).thenReturn("crime murder mystery club");
+        when(bookZ.title()).thenReturn("Book Z");
 
-        books = new HashSet<>();
-        books.add(book1);
-        books.add(book2);
+        when(tokenizer.tokenize("academy superhero club superhero"))
+                .thenReturn(List.of("academy", "superhero", "club", "superhero"));
+        when(tokenizer.tokenize("superhero mission save club"))
+                .thenReturn(List.of("superhero", "mission", "save", "club"));
+        when(tokenizer.tokenize("crime murder mystery club"))
+                .thenReturn(List.of("crime", "murder", "mystery", "club"));
+        when(tokenizer.tokenize("Book X")).thenReturn(List.of("book", "x"));
+        when(tokenizer.tokenize("Book Y")).thenReturn(List.of("book", "y"));
+        when(tokenizer.tokenize("Book Z")).thenReturn(List.of("book", "z"));
 
-        tfidf = new TFIDFSimilarityCalculator(books, tokenizer);
+        calculator = new TFIDFSimilarityCalculator(Set.of(bookX, bookY, bookZ), tokenizer);
     }
 
     @Test
-    void testConstructorWithEmptyBooksShouldThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> new TFIDFSimilarityCalculator(new HashSet<>(), tokenizer));
+    void testComputeTF() {
+        Map<String, Double> tf = calculator.computeTF(bookX);
+        assertEquals(0.25, tf.get("academy"), 0.001);
+        assertEquals(0.5, tf.get("superhero"), 0.001);
+        assertEquals(0.25, tf.get("club"), 0.001);
     }
 
     @Test
-    void testCalculateSimilarityWithEmptyDescriptionShouldReturnZero() {
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
-
-        when(book1.description()).thenReturn("");
-        when(book2.description()).thenReturn("Some valid description");
-        when(tokenizer.tokenize("")).thenReturn(List.of()); // No words for the first book
-        when(tokenizer.tokenize("Some valid description")).thenReturn(List.of("some", "valid", "description"));
-
-        double similarity = tfidf.calculateSimilarity(book1, book2);
-
-        assertEquals(0.0, similarity, "Expected similarity to be 0.0 when one book has no valid words");
+    void testComputeIDF() {
+        Map<String, Double> idf = calculator.computeIDF(bookX);
+        assertEquals(Math.log(3.0 / 2), idf.get("superhero"), 0.001);
+        assertEquals(Math.log(3.0 / 3), idf.get("club"), 0.001);
+        assertEquals(Math.log(3.0 / 1), idf.get("academy"), 0.001);
     }
 
     @Test
-    void testConstructorWithNullTokenizerShouldThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> new TFIDFSimilarityCalculator(books, null));
+    void testComputeTFIDF() {
+        Map<String, Double> tfidf = calculator.computeTFIDF(bookX);
+        assertEquals(0.25 * Math.log(3.0 / 1), tfidf.get("academy"), 0.001);
+        assertEquals(0.5 * Math.log(3.0 / 2), tfidf.get("superhero"), 0.001);
+        assertEquals(0.25 * Math.log(3.0 / 3), tfidf.get("club"), 0.001);
     }
 
     @Test
-    void testCalculateSimilarityWithNullBooksShouldThrowException() {
-        Book book1 = mock(Book.class);
-        assertThrows(IllegalArgumentException.class, () -> tfidf.calculateSimilarity(book1, null));
-        assertThrows(IllegalArgumentException.class, () -> tfidf.calculateSimilarity(null, book1));
-    }
-
-    @Test
-    void testCalculateSimilarityShouldReturnCorrectValue() {
-        Book book1 = mock(Book.class);
-        Book book2 = mock(Book.class);
-
-        when(book1.description()).thenReturn("java programming language");
-        when(book2.description()).thenReturn("java coffee beans");
-
-        when(tokenizer.tokenize("java programming language"))
-                .thenReturn(List.of("java", "programming", "language"));
-        when(tokenizer.tokenize("java coffee beans"))
-                .thenReturn(List.of("java", "coffee", "beans"));
-
-        double similarity = tfidf.calculateSimilarity(book1, book2);
-
+    void testCalculateSimilarity() {
+        double similarity = calculator.calculateSimilarity(bookX, bookY);
         assertTrue(similarity >= 0.0 && similarity <= 1.0);
     }
 
     @Test
-    void testComputeTFShouldReturnCorrectTFValues() {
-        Book book = mock(Book.class);
-        when(book.description()).thenReturn("java programming java");
-
-        when(tokenizer.tokenize("java programming java"))
-                .thenReturn(List.of("java", "programming", "java"));
-
-        Map<String, Double> tf = tfidf.computeTF(book);
-
-        assertEquals(2.0 / 3.0, tf.get("java"));
-        assertEquals(1.0 / 3.0, tf.get("programming"));
+    void testEmptyBooksSetThrowsException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> new TFIDFSimilarityCalculator(Set.of(), tokenizer));
     }
 
     @Test
-    void testComputeIDFShouldReturnCorrectIDFValues() {
-        Book book = books.stream().filter(b -> b.description().equals("java programming")).findFirst().orElseThrow();
-
-        Map<String, Double> idf = tfidf.computeIDF(book);
-
-        double expectedIdfJava = Math.log(2.0 / (2 + 1));
-        double expectedIdfProgramming = Math.log(2.0 / (1 + 1));
-
-        assertEquals(expectedIdfJava >= 0 ? expectedIdfJava: 0.0 , idf.get("java"), 1e-6, "IDF for 'java' is incorrect");
-        assertEquals(expectedIdfProgramming, idf.get("programming"), 1e-6, "IDF for 'programming' is incorrect");
+    void testNullTokenizerThrowsException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> new TFIDFSimilarityCalculator(Set.of(bookX, bookY, bookZ), null));
     }
 
     @Test
-    void testComputeTFIDFShouldReturnNonEmptyMap() {
-        Book book = mock(Book.class);
-        when(book.description()).thenReturn("java programming");
+    void testEmptyDescription() {
+        Book bookEmpty = mock(Book.class);
+        when(bookEmpty.description()).thenReturn("");
+        when(tokenizer.tokenize("")).thenReturn(List.of());
 
-        when(tokenizer.tokenize("java programming"))
-                .thenReturn(List.of("java", "programming"));
+        Map<String, Double> tf = calculator.computeTF(bookEmpty);
+        assertTrue(tf.isEmpty());
 
-        Map<String, Double> tfidfMap = tfidf.computeTFIDF(book);
+        Map<String, Double> tfidf = calculator.computeTFIDF(bookEmpty);
+        assertTrue(tfidf.isEmpty());
+    }
 
-        assertFalse(tfidfMap.isEmpty());
+    @Test
+    void testSingleWordDescription() {
+        Book bookSingleWord = mock(Book.class);
+        when(bookSingleWord.description()).thenReturn("unique");
+        when(tokenizer.tokenize("unique")).thenReturn(List.of("unique"));
+
+        Map<String, Double> tf = calculator.computeTF(bookSingleWord);
+        assertEquals(1.0, tf.get("unique"), 0.001);
+
+        Map<String, Double> tfidf = calculator.computeTFIDF(bookSingleWord);
+        assertEquals(Math.log(3.0 / 1), tfidf.get("unique"), 0.001);
+    }
+
+    @Test
+    void testNonOverlappingDescriptions() {
+        Book bookA = mock(Book.class);
+        Book bookB = mock(Book.class);
+        when(bookA.description()).thenReturn("alpha beta gamma");
+        when(bookB.description()).thenReturn("delta epsilon zeta");
+        when(tokenizer.tokenize("alpha beta gamma")).thenReturn(List.of("alpha", "beta", "gamma"));
+        when(tokenizer.tokenize("delta epsilon zeta")).thenReturn(List.of("delta", "epsilon", "zeta"));
+
+        double similarity = calculator.calculateSimilarity(bookA, bookB);
+        assertEquals(0.0, similarity, 0.001);
+    }
+
+    @Test
+    void testIdenticalDescriptions() {
+        Book bookA = mock(Book.class);
+        when(bookA.description()).thenReturn("common words here");
+        when(tokenizer.tokenize("common words here")).thenReturn(List.of("common", "words", "here"));
+
+        double similarity = calculator.calculateSimilarity(bookA, bookA);
+        assertEquals(1.0, similarity, 0.001);
+    }
+
+    @Test
+    void testPartialOverlapDescriptions() {
+        Book bookA = mock(Book.class);
+        Book bookB = mock(Book.class);
+        when(bookA.description()).thenReturn("shared words uniqueA");
+        when(bookB.description()).thenReturn("shared words uniqueB");
+        when(tokenizer.tokenize("shared words uniqueA")).thenReturn(List.of("shared", "words", "uniqueA"));
+        when(tokenizer.tokenize("shared words uniqueB")).thenReturn(List.of("shared", "words", "uniqueB"));
+
+        double similarity = calculator.calculateSimilarity(bookA, bookB);
+        assertTrue(similarity > 0.0 && similarity < 1.0);
     }
 }

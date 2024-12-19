@@ -4,6 +4,7 @@ import bg.sofia.uni.fmi.mjt.goodreads.book.Book;
 import bg.sofia.uni.fmi.mjt.goodreads.recommender.similaritycalculator.SimilarityCalculator;
 import bg.sofia.uni.fmi.mjt.goodreads.tokenizer.TextTokenizer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,11 +52,19 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
 
         for (Map.Entry<String, Double> entry : tf.entrySet()) {
             String word = entry.getKey();
-            double idf = idfCache.getOrDefault(word, 0.0);
+            double idf = computeIDF(book).get(word);
             tfidf.put(word, entry.getValue() * idf);
         }
 
         return tfidf;
+    }
+
+    private double computeIDFForWord(String word) {
+        long documentCount = books.stream()
+                .filter(book -> tokenizer.tokenize(book.description()).contains(word))
+                .count();
+
+        return Math.log((double) books.size() / (documentCount + 1));
     }
 
     public Map<String, Double> computeTF(Book book) {
@@ -65,8 +74,13 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
             return tfCache.get(book);
         }
 
-        List<String> words = tokenizer.tokenize(book.description());
+        List<String> words = new ArrayList<>(tokenizer.tokenize(book.description()));
+
         long totalWords = words.size();
+
+        if (totalWords == 0) {
+            return new HashMap<>(); // Avoid division by zero for empty descriptions
+        }
 
         Map<String, Long> wordCounts = words.stream()
                 .collect(Collectors.groupingBy(word -> word, Collectors.counting()));
@@ -83,7 +97,15 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
 
     public Map<String, Double> computeIDF(Book book) {
         validateBook(book);
-        return idfCache;
+        Map<String, Double> idfForBook = new HashMap<>();
+
+        Set<String> words = new HashSet<>(tokenizer.tokenize(book.description()));
+        for (String word : words) {
+            double idf = idfCache.containsKey(word) ? idfCache.get(word) : computeIDFForWord(word);
+            idfForBook.put(word, idf);
+        }
+
+        return idfForBook;
     }
 
     private void precomputeIDF() {
@@ -99,8 +121,8 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
         for (Map.Entry<String, Long> entry : documentFrequency.entrySet()) {
             String word = entry.getKey();
             long docCount = entry.getValue();
-            double idf = Math.log((double) books.size() / (docCount + 1));
-            idfCache.put(word, (idf <= 0.0 ? 0.0 : idf));
+            double idf = Math.log((double) books.size() / docCount);
+            idfCache.put(word, Math.max(idf, 0.0)); // Avoid negative IDF values
         }
     }
 

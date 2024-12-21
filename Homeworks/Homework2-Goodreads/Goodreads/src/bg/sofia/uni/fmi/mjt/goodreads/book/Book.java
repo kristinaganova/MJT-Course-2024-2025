@@ -3,14 +3,14 @@ package bg.sofia.uni.fmi.mjt.goodreads.book;
 import java.util.List;
 
 public record Book(
-        String id,
+        String ID,
         String title,
         String author,
         String description,
         List<String> genres,
         double rating,
         int ratingCount,
-        String url
+        String URL
 ) {
 
     private static final int EXPECTED_TOKEN_COUNT = 8;
@@ -40,11 +40,7 @@ public record Book(
             String author = tokens[AUTHOR_INDEX];
             String description = tokens[DESCRIPTION_INDEX];
 
-            List<String> genres = List.of(tokens[GENRES_INDEX]
-                    .replace(GENRES_BRACKET_LEFT, "")
-                    .replace(GENRES_BRACKET_RIGHT, "")
-                    .replace(GENRES_SINGLE_QUOTE, "")
-                    .split(GENRE_DELIMITER));
+            List<String> genres = parseGenres(tokens[GENRES_INDEX]);
 
             double rating = Double.parseDouble(tokens[RATING_INDEX]);
             int ratingCount = Integer.parseInt(tokens[RATING_COUNT_INDEX].replace(",", ""));
@@ -54,5 +50,19 @@ public record Book(
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid number format for rating or rating count", e);
         }
+    }
+
+    private static List<String> parseGenres(String genresToken) {
+        if (genresToken == null || genresToken.isBlank()) {
+            return List.of();
+        }
+
+        return List.of(
+                genresToken
+                        .replace(GENRES_BRACKET_LEFT, "")
+                        .replace(GENRES_BRACKET_RIGHT, "")
+                        .replace(GENRES_SINGLE_QUOTE, "")
+                        .split(GENRE_DELIMITER)
+        );
     }
 }

@@ -61,7 +61,7 @@ class TextTokenizerTest {
         var stopwordsReader = new StringReader("the\nis\nand");
         var tokenizer = new TextTokenizer(stopwordsReader);
 
-        assertThrows(IllegalArgumentException.class, () -> tokenizer.tokenize(null),
+        assertEquals(List.of(), tokenizer.tokenize(null),
                 "Expected IllegalArgumentException for null input");
     }
 

@@ -10,10 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-class TFIDFTest {
+class TFIDFTSimilarityCalculatorTest {
 
     private TFIDFSimilarityCalculator calculator;
     private TextTokenizer tokenizer;
@@ -153,5 +156,109 @@ class TFIDFTest {
 
         double similarity = calculator.calculateSimilarity(bookA, bookB);
         assertTrue(similarity > 0.0 && similarity < 1.0);
+    }
+
+    @Test
+    void testDescriptionWithStopwordsOnly() {
+        Book bookWithStopwords = mock(Book.class);
+        when(bookWithStopwords.description()).thenReturn("the and or but");
+        when(tokenizer.tokenize("the and or but")).thenReturn(List.of());
+
+        Map<String, Double> tf = calculator.computeTF(bookWithStopwords);
+        assertTrue(tf.isEmpty(), "TF should be empty when description contains only stopwords.");
+
+        Map<String, Double> tfidf = calculator.computeTFIDF(bookWithStopwords);
+        assertTrue(tfidf.isEmpty(), "TF-IDF should be empty when description contains only stopwords.");
+    }
+
+    @Test
+    void testBookWithLargeDescription() {
+        Book largeBook = mock(Book.class);
+        String largeDescription = "word ".repeat(1000).trim();
+        when(largeBook.description()).thenReturn(largeDescription);
+        when(tokenizer.tokenize(largeDescription)).thenReturn(List.of("word").stream().limit(1000).toList());
+
+        Map<String, Double> tf = calculator.computeTF(largeBook);
+        assertEquals(1.0, tf.get("word"), 0.001, "TF should account for large descriptions correctly.");
+
+        Map<String, Double> tfidf = calculator.computeTFIDF(largeBook);
+        assertTrue(tfidf.containsKey("word"), "TF-IDF should handle large descriptions.");
+    }
+
+    @Test
+    void testDescriptionWithSpecialCharacters() {
+        Book bookWithSpecialChars = mock(Book.class);
+        when(bookWithSpecialChars.description()).thenReturn("word1, word2! word3?");
+        when(tokenizer.tokenize("word1, word2! word3?")).thenReturn(List.of("word1", "word2", "word3"));
+
+        Map<String, Double> tf = calculator.computeTF(bookWithSpecialChars);
+        assertEquals(1.0 / 3, tf.get("word1"), 0.001, "TF should ignore special characters.");
+        assertEquals(1.0 / 3, tf.get("word2"), 0.001);
+        assertEquals(1.0 / 3, tf.get("word3"), 0.001);
+    }
+
+    @Test
+    void testBooksWithDifferentGenresAndTopics() {
+        Book bookA = mock(Book.class);
+        Book bookB = mock(Book.class);
+        when(bookA.description()).thenReturn("mathematics calculus algebra");
+        when(bookB.description()).thenReturn("history geography politics");
+        when(tokenizer.tokenize("mathematics calculus algebra"))
+                .thenReturn(List.of("mathematics", "calculus", "algebra"));
+        when(tokenizer.tokenize("history geography politics"))
+                .thenReturn(List.of("history", "geography", "politics"));
+
+        double similarity = calculator.calculateSimilarity(bookA, bookB);
+        assertEquals(0.0, similarity, 0.001, "Similarity should be 0 for completely unrelated topics.");
+    }
+
+    @Test
+    void testBookWithRepeatedWords() {
+        Book bookWithRepeats = mock(Book.class);
+        when(bookWithRepeats.description()).thenReturn("repeat repeat repeat unique");
+        when(tokenizer.tokenize("repeat repeat repeat unique"))
+                .thenReturn(List.of("repeat", "repeat", "repeat", "unique"));
+
+        Map<String, Double> tf = calculator.computeTF(bookWithRepeats);
+        assertEquals(0.75, tf.get("repeat"), 0.001, "TF for 'repeat' should be calculated correctly.");
+        assertEquals(0.25, tf.get("unique"), 0.001, "TF for 'unique' should be calculated correctly.");
+    }
+
+    @Test
+    void testBooksWithSharedWordsDifferentFrequencies() {
+        Book bookA = mock(Book.class);
+        Book bookB = mock(Book.class);
+        when(bookA.description()).thenReturn("common common uniqueA");
+        when(bookB.description()).thenReturn("common uniqueB uniqueB");
+        when(tokenizer.tokenize("common common uniqueA"))
+                .thenReturn(List.of("common", "common", "uniqueA"));
+        when(tokenizer.tokenize("common uniqueB uniqueB"))
+                .thenReturn(List.of("common", "uniqueB", "uniqueB"));
+
+        double similarity = calculator.calculateSimilarity(bookA, bookB);
+        assertTrue(similarity > 0.0 && similarity < 1.0, "Similarity should reflect frequency differences.");
+    }
+
+    @Test
+    void testTokenizerReturnsEmpty() {
+        Book bookEmptyTokenized = mock(Book.class);
+        when(bookEmptyTokenized.description()).thenReturn("### ### ###");
+        when(tokenizer.tokenize("### ### ###")).thenReturn(List.of());
+
+        Map<String, Double> tf = calculator.computeTF(bookEmptyTokenized);
+        assertTrue(tf.isEmpty(), "TF should be empty for descriptions with no valid tokens.");
+
+        Map<String, Double> tfidf = calculator.computeTFIDF(bookEmptyTokenized);
+        assertTrue(tfidf.isEmpty(), "TF-IDF should be empty for descriptions with no valid tokens.");
+    }
+
+    @Test
+    void testCaseInsensitiveTokenization() {
+        Book bookMixedCase = mock(Book.class);
+        when(bookMixedCase.description()).thenReturn("Word word WORD");
+        when(tokenizer.tokenize("Word word WORD")).thenReturn(List.of("word", "word", "word"));
+
+        Map<String, Double> tf = calculator.computeTF(bookMixedCase);
+        assertEquals(1.0, tf.get("word"), 0.001, "TF should treat words with different cases as identical.");
     }
 }

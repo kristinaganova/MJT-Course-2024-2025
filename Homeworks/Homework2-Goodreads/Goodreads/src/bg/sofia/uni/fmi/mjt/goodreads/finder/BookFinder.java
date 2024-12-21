@@ -4,12 +4,10 @@ import bg.sofia.uni.fmi.mjt.goodreads.book.Book;
 import bg.sofia.uni.fmi.mjt.goodreads.tokenizer.TextTokenizer;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class BookFinder implements BookFinderAPI {
 
@@ -48,14 +46,6 @@ public class BookFinder implements BookFinderAPI {
         return search(book -> matchesGenres(book, genres, option));
     }
 
-    @Override
-    public List<Book> searchByKeywords(Set<String> keywords, MatchOption option) {
-        validateNonNullOrEmpty(keywords, "Keywords cannot be null or empty");
-        validateNonNull(option, "Match option cannot be null");
-
-        return search(book -> matchesKeywords(book, keywords, option));
-    }
-
     private List<Book> search(SearchCriteria criteria) {
         return books.stream()
                 .filter(criteria::matches)
@@ -68,10 +58,27 @@ public class BookFinder implements BookFinderAPI {
                 : genres.stream().anyMatch(book.genres()::contains);
     }
 
-    private boolean matchesKeywords(Book book, Set<String> keywords, MatchOption option) {
-        List<String> combinedTokens = combineTokens(
-                tokenizer.tokenize(book.title()),
-                tokenizer.tokenize(book.description())
+    @Override
+    public List<Book> searchByKeywords(Set<String> keywords, MatchOption option) {
+        validateNonNullOrEmpty(keywords, "Keywords cannot be null or empty");
+        validateNonNull(option, "Match option cannot be null");
+
+        Set<String> normalizedKeywords = keywords.stream()
+                .filter(word -> !word.isBlank() && !tokenizer.stopwords().contains(word))
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        if (normalizedKeywords.isEmpty()) {
+            return List.of();
+        }
+
+        return search(book -> matchesKeywords(book, normalizedKeywords, option));
+    }
+
+    private boolean matchesKeywords(Book book, Set<String> normalizedKeywords, MatchOption option) {
+        Set<String> combinedTokens = combineTokens(
+                tokenizer.tokenize(book.title()).stream().map(String::toLowerCase).collect(Collectors.toSet()),
+                tokenizer.tokenize(book.description()).stream().map(String::toLowerCase).collect(Collectors.toSet())
         );
 
         if (combinedTokens.isEmpty()) {
@@ -79,15 +86,15 @@ public class BookFinder implements BookFinderAPI {
         }
 
         return option == MatchOption.MATCH_ALL
-                ? keywords.stream().allMatch(combinedTokens::contains)
-                : keywords.stream().anyMatch(combinedTokens::contains);
+                ? normalizedKeywords.stream().allMatch(combinedTokens::contains)
+                : normalizedKeywords.stream().anyMatch(combinedTokens::contains);
     }
 
-    private List<String> combineTokens(List<String> tokens1, List<String> tokens2) {
-        return Stream.concat(
-                Optional.ofNullable(tokens1).orElse(Collections.emptyList()).stream(),
-                Optional.ofNullable(tokens2).orElse(Collections.emptyList()).stream()
-        ).toList();
+    private Set<String> combineTokens(Set<String> tokens1, Set<String> tokens2) {
+        Set<String> combined = new HashSet<>();
+        if (tokens1 != null) combined.addAll(tokens1);
+        if (tokens2 != null) combined.addAll(tokens2);
+        return combined;
     }
 
     private void validateNonNullOrEmpty(Object input, String errorMessage) {

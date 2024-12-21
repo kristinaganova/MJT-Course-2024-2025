@@ -11,8 +11,10 @@ import org.mockito.Mockito;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class BookFinderTest {
 
@@ -75,7 +77,6 @@ class BookFinderTest {
     void testSearchByGenresMatchAny() {
         Set<String> genres = Set.of("Drama", "Mystery");
 
-        // Mock the behavior of TextTokenizer
         when(tokenizerMock.tokenize(Mockito.anyString())).thenReturn(List.of("drama", "mystery"));
 
         List<Book> matchingBooks = bookFinder.searchByGenres(genres, MatchOption.MATCH_ANY);

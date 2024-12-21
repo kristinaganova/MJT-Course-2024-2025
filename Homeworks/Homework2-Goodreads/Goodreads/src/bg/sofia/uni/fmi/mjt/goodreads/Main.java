@@ -32,7 +32,7 @@ public class Main {
 
             BookRecommender recommender = new BookRecommender(books, compositeCalculator);
 
-            Book originBook = books.stream().filter(book -> book.id().equals("2")).findFirst().get();
+            Book originBook = books.stream().filter(book -> book.ID().equals("2")).findFirst().get();
             System.out.println("Origin Book: " + originBook.title() + " by " + originBook.author());
 
             System.out.println("\nTop 5 Recommended Books:");

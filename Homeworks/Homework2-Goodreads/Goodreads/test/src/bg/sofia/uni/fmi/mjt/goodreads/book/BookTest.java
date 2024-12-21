@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BookTest {
 
@@ -25,14 +27,14 @@ class BookTest {
         Book book = Book.of(tokens);
 
         assertNotNull(book, "Book should be created successfully from valid tokens");
-        assertEquals("1", book.id(), "ID should match");
+        assertEquals("1", book.ID(), "ID should match");
         assertEquals("Title", book.title(), "Title should match");
         assertEquals("Author", book.author(), "Author should match");
         assertEquals("Description", book.description(), "Description should match");
         assertEquals(List.of("Genre1", "Genre2"), book.genres(), "Genres should match");
         assertEquals(4.5, book.rating(), "Rating should match");
         assertEquals(100, book.ratingCount(), "Rating count should match");
-        assertEquals("http://example.com", book.url(), "URL should match");
+        assertEquals("http://example.com", book.URL(), "URL should match");
     }
 
     @Test

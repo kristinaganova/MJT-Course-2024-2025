@@ -53,7 +53,7 @@ public record Book(
     }
 
     private static List<String> parseGenres(String genresToken) {
-        if (genresToken == null || genresToken.isBlank()) {
+        if (genresToken == null || genresToken.isBlank() || genresToken.equals("[]")) {
             return List.of();
         }
 

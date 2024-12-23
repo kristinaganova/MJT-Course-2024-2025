@@ -48,19 +48,21 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
 
     private void cacheTokenizedDescriptions() {
         for (Book book : books) {
-            tokenizedDescriptionCache.put(book, new HashSet<>(tokenizer.tokenize(book.description())));
+            List<String> tokens = tokenizer.tokenize(book.description());
+            tokenizedDescriptionCache.put(book, new HashSet<>(tokens));
         }
     }
 
     private void precomputeIDF() {
         Map<String, Long> documentFrequency = books.stream()
-                .flatMap(book -> tokenizedDescriptionCache.get(book).stream().distinct())
+                .flatMap(book -> tokenizedDescriptionCache.get(book).stream())
                 .collect(Collectors.groupingBy(word -> word, Collectors.counting()));
 
-        documentFrequency.forEach((word, docCount) -> {
+        for (String word : documentFrequency.keySet()) {
+            long docCount = documentFrequency.get(word);
             double idf = Math.log((double) books.size() / docCount);
-            idfCache.put(word, Math.max(idf, 0.0)); // Avoid negative IDF values
-        });
+            idfCache.put(word, Math.max(idf, 0.0));
+        }
     }
 
     public Map<String, Double> computeTFIDF(Book book) {
@@ -75,13 +77,7 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
         Map<String, Double> tfidf = new HashMap<>();
         for (Map.Entry<String, Double> entry : tf.entrySet()) {
             String word = entry.getKey();
-            double idf;
-            if (idfCache.containsKey(word)) {
-                idf = idfCache.get(word);
-            } else {
-                idf = computeIDFForWord(word);
-                idfCache.put(word, idf);
-            }
+            double idf = idfCache.computeIfAbsent(word, this::computeIDFForWord);
             tfidf.put(word, entry.getValue() * idf);
         }
 
@@ -89,6 +85,9 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
     }
 
     private double computeIDFForWord(String word) {
+        if (word == null || word.isBlank()) {
+            throw new IllegalArgumentException("Word cannot be null or blank");
+        }
         long documentCount = books.stream()
                 .filter(book -> tokenizedDescriptionCache.get(book).contains(word))
                 .count();
@@ -133,6 +132,10 @@ public class TFIDFSimilarityCalculator implements SimilarityCalculator {
     }
 
     private double cosineSimilarity(Map<String, Double> first, Map<String, Double> second) {
+        if (first == null || first.isEmpty() || second == null || second.isEmpty()) {
+            return 0.0;
+        }
+
         double dotProduct = dotProduct(first, second);
         double magnitudeFirst = magnitude(first.values());
         double magnitudeSecond = magnitude(second.values());

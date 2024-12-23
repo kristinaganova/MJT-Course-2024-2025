@@ -10,6 +10,7 @@ import bg.sofia.uni.fmi.mjt.goodreads.tokenizer.TextTokenizer;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -17,7 +18,6 @@ public class Main {
     public static void main(String[] args) {
         Path dataFilePath = Path.of("goodreads_data.csv");
         Path stopwordsFilePath = Path.of("stopwords.txt");
-
         try {
             TextTokenizer tokenizer = new TextTokenizer(new FileReader(stopwordsFilePath.toFile()));
 

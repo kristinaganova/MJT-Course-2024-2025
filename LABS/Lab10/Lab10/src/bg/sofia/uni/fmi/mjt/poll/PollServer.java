@@ -1,4 +1,4 @@
-package bg.sofia.uni.fmi.mjt.poll.server;
+package bg.sofia.uni.fmi.mjt.poll;
 
 import bg.sofia.uni.fmi.mjt.poll.command.CommandExecutor;
 import bg.sofia.uni.fmi.mjt.poll.command.CreatePollCommand;
@@ -6,6 +6,7 @@ import bg.sofia.uni.fmi.mjt.poll.command.DisconnectCommand;
 import bg.sofia.uni.fmi.mjt.poll.command.ListPollsCommand;
 import bg.sofia.uni.fmi.mjt.poll.command.SubmitVoteCommand;
 import bg.sofia.uni.fmi.mjt.poll.server.repository.InMemoryPollRepository;
+import bg.sofia.uni.fmi.mjt.poll.server.repository.PollRepository;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -27,14 +28,13 @@ public class PollServer {
     private Selector selector;
     private ByteBuffer buffer;
 
-    public PollServer(int port) {
+    public PollServer(int port, PollRepository pollRepository) {
         this.port = port;
         this.commandExecutor = new CommandExecutor();
-        initializeCommands();
+        initializeCommands(pollRepository);
     }
 
-    private void initializeCommands() {
-        InMemoryPollRepository repository = new InMemoryPollRepository();
+    private void initializeCommands(PollRepository repository) {
         commandExecutor.registerCommand("create-poll", new CreatePollCommand(repository));
         commandExecutor.registerCommand("list-polls", new ListPollsCommand(repository));
         commandExecutor.registerCommand("submit-vote", new SubmitVoteCommand(repository));
@@ -134,8 +134,10 @@ public class PollServer {
     }
 
     private static final int PORT = 8080;
+
     public static void main(String[] args) {
-        PollServer server = new PollServer(PORT);
+        PollRepository repository = new InMemoryPollRepository();
+        PollServer server = new PollServer(PORT, repository);
         server.start();
     }
 }

@@ -14,10 +14,13 @@ public class CreatePollCommand implements Command {
         this.repository = repository;
     }
 
+    private static final int MIN_ARGS = 3;
+
     @Override
     public String execute(String[] args) {
-        if (args.length < 3) {
-            return "{\"status\":\"ERROR\",\"message\":\"Usage: create-poll <question> <option-1> <option-2> [... <option-N>]\"}";
+        if (args.length < MIN_ARGS) {
+            return "{\"status\":\"ERROR\",\"message\":\"Usage: " +
+                    "create-poll <question> <option-1> <option-2> [... <option-N>]\"}";
         }
 
         String question = args[0];

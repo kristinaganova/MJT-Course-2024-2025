@@ -54,16 +54,21 @@ public class NewsFeedHttpClient implements NewsFeedClient {
     }
 
     private NewsFeedResponse parseResponse(String responseBody) throws NewsFeedClientException {
-        NewsFeedResponse parsedResponse = GSON.fromJson(responseBody, NewsFeedResponse.class);
-        if (parsedResponse == null) {
-            throw new NewsFeedClientException("Unexpected response from news feed service.");
+        try {
+            NewsFeedResponse response = GSON.fromJson(responseBody, NewsFeedResponse.class);
+            if (response == null) {
+                throw new NewsFeedClientException("Parsed response is null.");
+            }
+            return response;
+        } catch (Exception e) {
+            throw new NewsFeedClientException("Error parsing the response JSON: " + e.getMessage(), e);
         }
-        return parsedResponse;
     }
 
     private void validateResponse(NewsFeedResponse response) throws NewsFeedClientException {
         if (ERROR_STATUS.equals(response.status())) {
-            throw new NewsFeedClientException(response.code(), response.message());
+            String errorMessage = "Error code: " + response.code() + ", message: " + response.message();
+            throw new NewsFeedClientException(errorMessage);
         }
 
         if (!OK_STATUS.equals(response.status())) {

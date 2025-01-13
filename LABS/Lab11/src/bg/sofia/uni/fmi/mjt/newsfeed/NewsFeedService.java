@@ -1,7 +1,7 @@
 package bg.sofia.uni.fmi.mjt.newsfeed;
 
 import bg.sofia.uni.fmi.mjt.newsfeed.client.NewsFeedHttpClient;
-import bg.sofia.uni.fmi.mjt.newsfeed.client.NewsFeedRequest;
+import bg.sofia.uni.fmi.mjt.newsfeed.client.request.NewsFeedRequest;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedResult;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.Article;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedArticles;
@@ -21,14 +21,13 @@ public class NewsFeedService {
     }
 
     public NewsFeedResult execute(NewsFeedRequest request) throws NewsFeedClientException {
-        // Check cache first
         if (cache.get(request) != null) {
             return cache.get(request);
         }
 
         try {
             NewsFeedArticles articles = client.getNewsFeed(request.uri());
-            List<Article> allArticles = new ArrayList<>(articles.articles());  // Mutable list to collect all articles
+            List<Article> allArticles = new ArrayList<>(articles.articles());
 
             var iterator = request.getIterator(articles.totalResults());
             while (iterator.hasNext()) {

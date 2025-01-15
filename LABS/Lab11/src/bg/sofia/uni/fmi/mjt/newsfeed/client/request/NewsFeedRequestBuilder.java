@@ -1,5 +1,6 @@
 package bg.sofia.uni.fmi.mjt.newsfeed.client.request;
 
+import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedRequestException;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedCategory;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedCountry;
 
@@ -14,9 +15,9 @@ public class NewsFeedRequestBuilder {
     private int elementsOnPage = NewsFeedRequest.DEFAULT_ELEMENTS_ON_PAGE;
     private int pagesCount = NewsFeedRequest.DEFAULT_PAGES_COUNT;
 
-    public NewsFeedRequestBuilder(String... keywords) {
+    public NewsFeedRequestBuilder(String... keywords) throws NewsFeedRequestException {
         if (keywords == null || keywords.length == 0) {
-            throw new IllegalArgumentException("At least one keyword must be provided.");
+            throw new NewsFeedRequestException("At least one keyword must be provided.");
         }
         this.keywords = List.of(keywords);
     }
@@ -76,7 +77,11 @@ public class NewsFeedRequestBuilder {
         return this;
     }
 
-    public NewsFeedRequest build() {
+    public NewsFeedRequest build() throws NewsFeedRequestException {
+        if (keywords.isEmpty() && (category != NewsFeedCategory.DEFAULT || country != NewsFeedCountry.DEFAULT)) {
+            throw new NewsFeedRequestException("Invalid request: Keywords are mandatory when specifying " +
+                    "                           category or country.");
+        }
         return new NewsFeedRequest(this);
     }
 }

@@ -18,8 +18,9 @@ public class TimedCache<K, V> implements Cache<K, V> {
         }
     }
 
+    private static final int MULTIPLIER = 1000;
     public TimedCache(long expirationTimeInSeconds) {
-        this.expirationTimeInSeconds = expirationTimeInSeconds * 1000;
+        this.expirationTimeInSeconds = expirationTimeInSeconds * MULTIPLIER;
         this.cacheMap = new HashMap<>();
     }
 

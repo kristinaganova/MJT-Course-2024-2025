@@ -21,8 +21,9 @@ public class NewsFeedService {
     }
 
     public NewsFeedResult execute(NewsFeedRequest request) throws NewsFeedClientException {
-        if (cache.get(request) != null) {
-            return cache.get(request);
+        NewsFeedResult cachedResult = cache.get(request);
+        if (cachedResult != null) {
+            return cachedResult;
         }
 
         try {

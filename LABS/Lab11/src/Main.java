@@ -10,7 +10,6 @@ import bg.sofia.uni.fmi.mjt.newsfeed.cache.TimedCache;
 import java.net.http.HttpClient;
 
 public class Main {
-
     public static void main(String... args) {
         final int timeout = 20;
 
@@ -19,7 +18,7 @@ public class Main {
             TimedCache<NewsFeedRequest, NewsFeedResult> cache = new TimedCache<>(timeout);
             NewsFeedService client = new NewsFeedService(httpClient, cache);
 
-            NewsFeedRequest request = NewsFeedRequest.newRequest("London").build();
+            NewsFeedRequest request = NewsFeedRequest.newRequest("exam").build();
             NewsFeedResult result = client.execute(request);
 
             if (result != null && result.articles() != null) {

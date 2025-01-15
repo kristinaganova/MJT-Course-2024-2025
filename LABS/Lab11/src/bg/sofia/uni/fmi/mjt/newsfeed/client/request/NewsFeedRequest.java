@@ -1,5 +1,6 @@
 package bg.sofia.uni.fmi.mjt.newsfeed.client.request;
 
+import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedRequestException;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedCategory;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedCountry;
 
@@ -36,7 +37,7 @@ public class NewsFeedRequest {
         this.pagesCount = builder.getPagesCount();
     }
 
-    public static NewsFeedRequestBuilder newRequest(String... keywords) {
+    public static NewsFeedRequestBuilder newRequest(String... keywords) throws NewsFeedRequestException {
         return new NewsFeedRequestBuilder(keywords);
     }
 
@@ -59,8 +60,12 @@ public class NewsFeedRequest {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         NewsFeedRequest that = (NewsFeedRequest) o;
         return keywords.equals(that.keywords) && category == that.category && country == that.country;
     }

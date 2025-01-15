@@ -21,6 +21,9 @@ class RequestUriIterator implements Iterator<URI> {
 
     @Override
     public URI next() {
+        if (!hasNext()) {
+            throw new IllegalArgumentException("No more pages");
+        }
         return request.uri(currentPage++);
     }
 }

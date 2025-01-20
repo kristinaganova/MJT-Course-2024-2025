@@ -2,11 +2,13 @@ package bg.sofia.uni.fmi.mjt.newsfeed;
 
 import bg.sofia.uni.fmi.mjt.newsfeed.client.NewsFeedHttpClient;
 import bg.sofia.uni.fmi.mjt.newsfeed.client.request.NewsFeedRequest;
+import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedResponseException;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedResult;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.Article;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedArticles;
 import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedClientException;
 import bg.sofia.uni.fmi.mjt.newsfeed.cache.Cache;
+import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,7 @@ public class NewsFeedService {
             cache.put(request, result);
 
             return result;
-        } catch (NewsFeedClientException e) {
+        } catch (NewsFeedClientException | NewsFeedResponseException e) {
             throw new NewsFeedClientException("Error fetching news feed: " + e.getMessage(), e);
         }
     }

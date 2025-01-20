@@ -2,6 +2,7 @@ package bg.sofia.uni.fmi.mjt.newsfeed;
 
 import bg.sofia.uni.fmi.mjt.newsfeed.client.NewsFeedHttpClient;
 import bg.sofia.uni.fmi.mjt.newsfeed.client.request.NewsFeedRequest;
+import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedResponseException;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.category.NewsFeedResult;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.Article;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.ArticleSource;
@@ -37,7 +38,7 @@ class NewsFeedServiceTest {
     }
 
     @Test
-    void testExecuteReturnsCachedResult() throws NewsFeedClientException {
+    void testExecuteReturnsCachedResult() throws NewsFeedClientException, NewsFeedResponseException {
         NewsFeedResult cachedResult = new NewsFeedResult(Collections.emptyList());
         when(mockCache.get(mockRequest)).thenReturn(cachedResult);
 
@@ -49,7 +50,7 @@ class NewsFeedServiceTest {
     }
 
     @Test
-    void testExecuteFetchesAndCachesResult() throws NewsFeedClientException {
+    void testExecuteFetchesAndCachesResult() throws NewsFeedClientException, NewsFeedResponseException {
         when(mockCache.get(mockRequest)).thenReturn(null);
 
         List<Article> articles = List.of(new Article(new ArticleSource("Unique ID", "Test Source"), "Test Author", "Test Title", "Test Description", "https://example.com", null, null, null));
@@ -68,7 +69,7 @@ class NewsFeedServiceTest {
     }
 
     @Test
-    void testExecuteHandlesClientException() throws NewsFeedClientException {
+    void testExecuteHandlesClientException() throws NewsFeedClientException, NewsFeedResponseException {
         when(mockCache.get(mockRequest)).thenReturn(null);
         when(mockClient.getNewsFeed(mockRequest.uri())).thenThrow(new NewsFeedClientException("Test exception"));
 

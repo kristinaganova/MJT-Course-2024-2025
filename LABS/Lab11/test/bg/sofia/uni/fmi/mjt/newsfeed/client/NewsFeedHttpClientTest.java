@@ -1,5 +1,6 @@
 package bg.sofia.uni.fmi.mjt.newsfeed.client;
 
+import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedResponseException;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedArticles;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedResponse;
 import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedClientException;
@@ -53,7 +54,7 @@ class NewsFeedHttpClientTest {
 
         URI requestUri = URI.create(TEST_URI);
 
-        NewsFeedClientException exception = assertThrows(NewsFeedClientException.class, () -> newsFeedHttpClient.getNewsFeed(requestUri),
+        NewsFeedResponseException exception = assertThrows(NewsFeedResponseException.class, () -> newsFeedHttpClient.getNewsFeed(requestUri),
                 "Expected an exception for error response");
         assertTrue(exception.getMessage().contains("Error code: test-code"), "Exception message should contain error details.");
     }

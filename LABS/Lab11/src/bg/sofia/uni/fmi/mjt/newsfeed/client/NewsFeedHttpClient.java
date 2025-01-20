@@ -1,5 +1,6 @@
 package bg.sofia.uni.fmi.mjt.newsfeed.client;
 
+import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedResponseException;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedArticles;
 import bg.sofia.uni.fmi.mjt.newsfeed.model.datatransfer.NewsFeedResponse;
 import bg.sofia.uni.fmi.mjt.newsfeed.exception.NewsFeedClientException;
@@ -31,7 +32,7 @@ public class NewsFeedHttpClient implements NewsFeedClient {
     }
 
     @Override
-    public NewsFeedArticles getNewsFeed(URI requestUri) throws NewsFeedClientException {
+    public NewsFeedArticles getNewsFeed(URI requestUri) throws NewsFeedResponseException, NewsFeedClientException {
         String responseBody = sendRequest(requestUri);
         NewsFeedResponse response = parseResponse(responseBody);
 
@@ -57,7 +58,7 @@ public class NewsFeedHttpClient implements NewsFeedClient {
         try {
             NewsFeedResponse response = GSON.fromJson(responseBody, NewsFeedResponse.class);
             if (response == null) {
-                throw new NewsFeedClientException("Parsed response is null.");
+                throw new NewsFeedResponseException("Parsed response is null.");
             }
             return response;
         } catch (Exception e) {
@@ -65,14 +66,14 @@ public class NewsFeedHttpClient implements NewsFeedClient {
         }
     }
 
-    private void validateResponse(NewsFeedResponse response) throws NewsFeedClientException {
+    private void validateResponse(NewsFeedResponse response) throws  NewsFeedResponseException {
         if (ERROR_STATUS.equals(response.status())) {
             String errorMessage = "Error code: " + response.code() + ", message: " + response.message();
-            throw new NewsFeedClientException(errorMessage);
+            throw new NewsFeedResponseException(errorMessage);
         }
 
         if (!OK_STATUS.equals(response.status())) {
-            throw new NewsFeedClientException("Unexpected response from news feed service.");
+            throw new NewsFeedResponseException("Unexpected response from news feed service.");
         }
     }
 }
